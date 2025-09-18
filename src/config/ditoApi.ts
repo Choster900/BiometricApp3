@@ -9,7 +9,15 @@ const envConfig = Constants.expoConfig?.extra as EnvConfig;
 
 // Constantes de configuración
 const STAGE = envConfig?.ENVIRONMENT || 'development';
-const API_URL = envConfig?.API_URL || 'localhost:3001/api';
+let API_URL = envConfig?.API_URL || 'localhost:3001/api';
+
+// Para desarrollo: Android necesita 10.0.2.2 en lugar de localhost
+if (STAGE === 'development' && API_URL.includes('localhost')) {
+    API_URL = Platform.OS === 'android' 
+        ? API_URL.replace('localhost', '10.0.2.2')
+        : API_URL;
+}
+
 const API_URL_IOS = `http://${API_URL}`;
 const API_URL_ANDROID = `http://${API_URL}`;
 const PUBLIC_KEY = envConfig?.API_KEY || '';
@@ -45,6 +53,11 @@ const getBaseUrl = (): string => {
 };
 
 export const DITO_API_BASE_URL = getBaseUrl();
+
+// Debug: Verificar URL generada
+console.log('🌐 API Base URL:', DITO_API_BASE_URL);
+console.log('📱 Platform:', Platform.OS);
+console.log('🏷️ Environment:', STAGE);
 
 /**
  * Instancia de Axios configurada para la API de Dito

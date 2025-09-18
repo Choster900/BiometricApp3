@@ -7,6 +7,7 @@ export interface LoginResponse {
     foundDeviceToken:      FoundDeviceToken;
     allowMultipleSessions: boolean;
     token:                 string;
+    secureTokenSet:        boolean;
 }
 
 export interface FoundDeviceToken {

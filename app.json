@@ -8,7 +8,7 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "extra": {
-      "API_URL": "localhost:3001/api",
+      "API_URL": "http://localhost:3001/api",
       "API_KEY": "18aa8ed0f10203f4d5fa5e3266d6be8eb885b1b1d379f955e64c37623f55b6e2",
       "APP_VERSION": "1.0.0",
       "ENVIRONMENT": "development",

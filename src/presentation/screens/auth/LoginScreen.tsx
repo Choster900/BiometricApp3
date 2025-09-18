@@ -9,6 +9,9 @@ import {
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../navigation/StackNavigator';
+import { useAuthStore } from '../../store/auth/useAuthStore';
+import { EnvConfig } from '../../../types/env';
+import Constants from 'expo-constants';
 
 
 type LoginScreenNavigationProp = StackNavigationProp<
@@ -21,36 +24,55 @@ interface LoginScreenProps {
 }
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleLogin = () => {
+    const { login } = useAuthStore();
+
+    const handleLogin = async () => {
         // Validación básica
-        if (!username.trim() || !password.trim()) {
-            Alert.alert('Error', 'Por favor ingresa usuario y contraseña');
+        if (!email.trim() || !password.trim()) {
+            Alert.alert('Error', 'Por favor ingresa email y contraseña');
             return;
         }
 
-        // Simulación de login exitoso
-        Alert.alert('Éxito', 'Login exitoso', [
-            {
-                text: 'OK',
-                onPress: () => navigation.navigate('HomeScreen'),
-            },
-        ]);
+        setIsLoading(true);
+
+        try {
+            const success = await login(email, password);
+
+            if (success) {
+                navigation.navigate('HomeScreen');
+            } else {
+                Alert.alert('Error', 'Credenciales incorrectas');
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            Alert.alert('Error', 'Ocurrió un error al iniciar sesión');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
+    const envConfig = Constants.expoConfig?.extra as EnvConfig;
+
+
     return (
+
         <View style={styles.container}>
             <Text style={styles.title}>Iniciar Sesión</Text>
-
+            <Text style={{ textAlign: 'center', marginBottom: 10, color: '#888' }}>
+                {envConfig?.API_URL || 'No BASE URL definida'}
+            </Text>
             <View style={styles.formContainer}>
                 <TextInput
                     style={styles.input}
-                    placeholder="Usuario"
-                    value={username}
-                    onChangeText={setUsername}
+                    placeholder="Email"
+                    value={email}
+                    onChangeText={setEmail}
                     autoCapitalize="none"
+                    keyboardType="email-address"
                 />
 
                 <TextInput
@@ -62,8 +84,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                     autoCapitalize="none"
                 />
 
-                <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-                    <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
+                <TouchableOpacity
+                    style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
+                    onPress={handleLogin}
+                    disabled={isLoading}
+                >
+                    <Text style={styles.loginButtonText}>
+                        {isLoading ? 'Iniciando...' : 'Iniciar Sesión'}
+                    </Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -111,6 +139,9 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         alignItems: 'center',
         marginTop: 10,
+    },
+    loginButtonDisabled: {
+        backgroundColor: '#A0A0A0',
     },
     loginButtonText: {
         color: 'white',

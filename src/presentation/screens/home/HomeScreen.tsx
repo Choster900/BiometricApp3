@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../navigation/StackNavigator';
+import { useAuthStore } from '../../store/auth/useAuthStore';
 
  
 
@@ -21,6 +22,8 @@ interface HomeScreenProps {
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
+  const { logout, user } = useAuthStore();
+
   const handleLogout = () => {
     Alert.alert(
       'Cerrar Sesión',
@@ -32,7 +35,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         },
         {
           text: 'Cerrar Sesión',
-          onPress: () => navigation.navigate('LoginScreen'),
+          onPress: async () => {
+            await logout();
+            navigation.navigate('LoginScreen');
+          },
         },
       ]
     );
@@ -41,8 +47,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>¡Bienvenido!</Text>
+        <Text style={styles.title}>¡Bienvenido{user?.fullName ? `, ${user.fullName}` : ''}!</Text>
         <Text style={styles.subtitle}>Has iniciado sesión correctamente</Text>
+        
+        {user?.email && (
+          <Text style={styles.userInfo}>Email: {user.email}</Text>
+        )}
         
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Panel Principal</Text>
@@ -80,8 +90,15 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 18,
     textAlign: 'center',
-    marginBottom: 40,
+    marginBottom: 20,
     color: '#666',
+  },
+  userInfo: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#007AFF',
+    fontWeight: '500',
   },
   card: {
     backgroundColor: 'white',
