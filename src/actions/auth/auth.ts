@@ -51,6 +51,7 @@ export const authLogin = async (email: string, password: string, deviceToken: st
 export const authValidateToken = async (): Promise<{ user: User, token: string, refreshToken: string } | null> => {
     try {
         const { data } = await ditoApi.get<LoginResponse>('/auth/check-status?deviceToken=86e7023e-37ad-487e-ade0-17f2941f5464');
+        console.log(data)
         return returnUserToken(data);
     } catch (error: any) {
         // Si es error de autenticación (400, 401, 403), no mostrar error

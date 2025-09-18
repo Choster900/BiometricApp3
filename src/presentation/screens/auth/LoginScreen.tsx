@@ -29,7 +29,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    const { login, loginWithBiometrics } = useAuthStore();
+    const { login, loginWithBiometrics, isBiometricEnabledInBackend } = useAuthStore();
     const {
         capabilities,
         isLoading: isBiometricLoading,
@@ -130,8 +130,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                     </Text>
                 </TouchableOpacity>
 
-                {/* Separador */}
-                {capabilities.isAvailable && !isBiometricLoading && (
+                {/* Separador y botón biométrico */}
+                {capabilities.isAvailable && !isBiometricLoading && isBiometricEnabledInBackend && (
                     <>
                         <View style={styles.separator}>
                             <View style={styles.separatorLine} />
