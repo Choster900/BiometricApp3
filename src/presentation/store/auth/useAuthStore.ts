@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { User } from "../../../domain/entities/user";
 import { AuthStatus } from "../../../infrastructure/interfaces/auth.status";
 import { StorageAdapter } from "../../../config/adapters/async-storage";
-import { authLogin, authValidateToken } from "../../../actions/auth/auth";
+import { authLogin, authLoginWithDeviceToken, authValidateToken } from "../../../actions/auth/auth";
 
 
 export interface AuthState {
@@ -13,6 +13,7 @@ export interface AuthState {
 
 
     login: (email: string, password: string) => Promise<boolean>;
+    loginWithBiometrics: () => Promise<boolean>;
     logout: () => void;
     checkStatus: () => Promise<boolean>;
 
@@ -48,6 +49,29 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
     },
 
+    loginWithBiometrics: async () => {
+        try {
+ 
+ 
+            const resp = await authLoginWithDeviceToken("86e7023e-37ad-487e-ade0-17f2941f5464");
+            if (!resp) return false;
+
+            await StorageAdapter.setItem('token', resp.token);
+            
+            // Solo guardar refreshToken si existe en la respuesta
+            if (resp.refreshToken) {
+                await StorageAdapter.setItem('refreshToken', resp.refreshToken);
+            }
+
+            set({ status: 'authenticated', token: resp.token, user: resp.user });
+            return true;
+
+        } catch (e) {
+            console.log("Biometric login failed:", e);
+            return false;
+        }
+    },
+
     logout: async () => {
         await StorageAdapter.removeItem('token');
         await StorageAdapter.removeItem('refreshToken');
@@ -59,16 +83,21 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
         const resp = await authValidateToken();
 
+        console.log(resp)
         if (!resp) {
             set({ status: 'unauthenticated', token: undefined, user: undefined });
             return false;
         }
 
         await StorageAdapter.setItem('token', resp.token);
-        await StorageAdapter.setItem('refreshToken', resp.refreshToken);
+        
+        // Solo guardar refreshToken si existe en la respuesta
+        if (resp.refreshToken) {
+            await StorageAdapter.setItem('refreshToken', resp.refreshToken);
+        }
 
         set({ status: 'authenticated', token: resp.token, user: resp.user });
-        
+
 
         return true;
 

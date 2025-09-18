@@ -23,7 +23,7 @@ const returnUserToken = (data: LoginResponse) => {
 }
 
 
-export const authLogin = async (email: string, password: string, deviceToken: string) => {
+export const authLogin = async (email: string, password: string, deviceToken: string): Promise<{ user: User, token: string, refreshToken: string } | null> => {
     email = email.toLowerCase().trim();
     try {
         const { data } = await ditoApi.post<LoginResponse>('/auth/login', { email, password, deviceToken });
@@ -48,9 +48,9 @@ export const authLogin = async (email: string, password: string, deviceToken: st
 };
 
 
-export const authValidateToken = async (): Promise<{ user: User, token: string } | null> => {
+export const authValidateToken = async (): Promise<{ user: User, token: string, refreshToken: string } | null> => {
     try {
-        const { data } = await ditoApi.get<LoginResponse>('/auth/check-status');
+        const { data } = await ditoApi.get<LoginResponse>('/auth/check-status?deviceToken=86e7023e-37ad-487e-ade0-17f2941f5464');
         return returnUserToken(data);
     } catch (error: any) {
         // Si es error de autenticación (400, 401, 403), no mostrar error
@@ -67,6 +67,22 @@ export const authValidateToken = async (): Promise<{ user: User, token: string }
             message = error.message;
         }
         console.error('Token validation error:', message, error);
+        return null;
+    }
+};
+
+export const authLoginWithDeviceToken = async (deviceToken: string): Promise<{ user: User, token: string, refreshToken: string } | null> => {
+    try {
+        const { data } = await ditoApi.post<LoginResponse>('/auth/login-with-device-token', { deviceToken });
+        return returnUserToken(data);
+    } catch (error: any) {
+        let message = 'Error en login biométrico.';
+        if (error.response?.data?.message) {
+            message = error.response.data.message;
+        } else if (error.message) {
+            message = error.message;
+        }
+        console.error('Biometric login error:', message, error);
         return null;
     }
 };
