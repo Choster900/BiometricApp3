@@ -29,7 +29,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    const { login, loginWithBiometrics, isBiometricEnabledInBackend } = useAuthStore();
+    const { login, loginWithBiometrics, isBiometricEnabledInBackend, deviceToken, removeStorageItem } = useAuthStore();
     const {
         capabilities,
         isLoading: isBiometricLoading,
@@ -66,10 +66,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     const handleBiometricLogin = async () => {
         try {
             setIsLoading(true);
-            
+
             // Primero verificar la biometría
             const biometricResult = await authenticateAsync();
-            
+
             if (!biometricResult.success) {
                 Alert.alert('Error', biometricResult.error || 'Autenticación biométrica fallida');
                 return;
@@ -91,6 +91,37 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         }
     };
 
+    const handleRemoveStorage = () => {
+        Alert.alert(
+            'Limpiar Almacenamiento',
+            '¿Estás seguro de que quieres eliminar todos los datos almacenados? Esta acción no se puede deshacer.',
+            [
+                {
+                    text: 'Cancelar',
+                    style: 'cancel',
+                },
+                {
+                    text: 'Eliminar',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            // Limpiar todos los items del storage
+                           /*  await removeStorageItem('token');
+                            await removeStorageItem('refreshToken');
+                            await removeStorageItem('foundDeviceToken'); */
+                            await removeStorageItem('deviceToken');
+                            
+                            Alert.alert('Éxito', 'Almacenamiento limpiado correctamente');
+                        } catch (error) {
+                            console.error('Error removing storage:', error);
+                            Alert.alert('Error', 'No se pudo limpiar el almacenamiento');
+                        }
+                    },
+                },
+            ]
+        );
+    };
+
     const envConfig = Constants.expoConfig?.extra as EnvConfig;
 
 
@@ -100,6 +131,15 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             <Text style={styles.title}>Iniciar Sesión</Text>
             <Text style={{ textAlign: 'center', marginBottom: 10, color: '#888' }}>
                 {envConfig?.API_URL || 'No BASE URL definida'}
+            </Text>
+            <TouchableOpacity
+                style={styles.removeButton}
+                onPress={handleRemoveStorage}
+            >
+                <Text style={styles.removeButtonText}>🗑️ Limpiar Datos</Text>
+            </TouchableOpacity>
+            <Text style={{ textAlign: 'center', marginBottom: 10, color: '#888' }}>
+                {`Device Token: ${deviceToken || 'No device token disponible'}`}
             </Text>
             <View style={styles.formContainer}>
                 <TextInput
@@ -237,6 +277,20 @@ const styles = StyleSheet.create({
     biometricButtonText: {
         color: 'white',
         fontSize: 16,
+        fontWeight: '600',
+    },
+    removeButton: {
+        backgroundColor: '#FF3B30',
+        padding: 10,
+        borderRadius: 6,
+        alignItems: 'center',
+        marginBottom: 10,
+        alignSelf: 'center',
+        paddingHorizontal: 20,
+    },
+    removeButtonText: {
+        color: 'white',
+        fontSize: 14,
         fontWeight: '600',
     },
 });

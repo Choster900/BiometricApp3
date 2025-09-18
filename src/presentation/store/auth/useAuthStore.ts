@@ -3,6 +3,7 @@ import { User } from "../../../domain/entities/user";
 import { AuthStatus } from "../../../infrastructure/interfaces/auth.status";
 import { StorageAdapter } from "../../../config/adapters/async-storage";
 import { authLogin, authLoginWithDeviceToken, authValidateToken } from "../../../actions/auth/auth";
+import { generateDeviceToken, saveDeviceToken, toggleBiometrics } from "../../../actions/security/security";
 
 
 export interface AuthState {
@@ -10,12 +11,20 @@ export interface AuthState {
     token?: string;
     refreshToken?: string;
     user?: User;
-    isBiometricEnabledInBackend?: boolean;
+    isBiometricEnabledInBackend?: boolean; // Se dara uso tambien en LoginScreen
+    deviceToken?: string;
 
     login: (email: string, password: string) => Promise<boolean>;
     loginWithBiometrics: () => Promise<boolean>;
     logout: () => void;
     checkStatus: () => Promise<boolean>;
+
+    // Config
+    toggleBiometrics: (enabled: boolean) => Promise<boolean>;
+
+
+    //Extras
+    removeStorageItem: (key: string) => Promise<void>;
 
 }
 
@@ -27,22 +36,51 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     refreshToken: undefined,
     user: undefined,
     isBiometricEnabledInBackend: false,
+    deviceToken: undefined,
 
     login: async (email: string, password: string) => {
 
-        const resp = await authLogin(email, password, '86e7023e-37ad-487e-ade0-17f2941f5464');
+
+        let deviceToken = await StorageAdapter.getItem('deviceToken');
+
+
+        const resp = await authLogin(email, password, deviceToken || "");
+
 
         if (!resp) {
             set({ status: 'unauthenticated', token: undefined, user: undefined, refreshToken: undefined });
-
             return false;
         }
-
 
         await StorageAdapter.setItem('token', resp.token);
         await StorageAdapter.setItem('refreshToken', resp.refreshToken);
 
+
+        if (resp?.user.foundDeviceToken) {
+            console.log("Using device token from storage:", resp?.user.foundDeviceToken);
+        } else {
+            const response = await generateDeviceToken();
+            if (!response || !response.deviceToken) {
+                console.error("Failed to generate device token");
+                return false;
+            }
+            deviceToken = response.deviceToken.trim();
+            if (!deviceToken) {
+                console.error("Failed to generate device token");
+                return false;
+            }
+            await StorageAdapter.setItem('deviceToken', deviceToken);
+            await saveDeviceToken(deviceToken);
+        }
+
+
+        // Guardar el device token del dispositivo
+        if (resp.user.foundDeviceToken) {
+            await StorageAdapter.setItem('deviceToken', resp.user.foundDeviceToken.deviceToken);
+        }
+
         if (resp.user.foundDeviceToken) { // Si contiene algo
+            console.log("biometricEnabled", resp.user.foundDeviceToken.biometricEnabled);
             await StorageAdapter.setItem('biometricEnabled', resp.user.foundDeviceToken.biometricEnabled.toString());
         }
 
@@ -53,7 +91,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
             status: 'authenticated',
             token: resp.token,
             user: resp.user,
-            isBiometricEnabledInBackend: isBiometricEnabled
+            isBiometricEnabledInBackend: isBiometricEnabled,
+            deviceToken: resp.user.foundDeviceToken?.deviceToken
         });
 
         return true;
@@ -62,7 +101,10 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
     loginWithBiometrics: async () => {
         try {
-            const resp = await authLoginWithDeviceToken("86e7023e-37ad-487e-ade0-17f2941f5464");
+
+            let deviceToken = await StorageAdapter.getItem('deviceToken');
+
+            const resp = await authLoginWithDeviceToken(deviceToken || "");
             if (!resp) return false;
 
             await StorageAdapter.setItem('token', resp.token);
@@ -72,6 +114,10 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
                 await StorageAdapter.setItem('refreshToken', resp.refreshToken);
             }
 
+            if (resp.user.foundDeviceToken) {
+                await StorageAdapter.setItem('deviceToken', resp.user.foundDeviceToken.deviceToken);
+            }
+
             // Determinar si la biometría está habilitada en el backend
             const isBiometricEnabled = resp.user.foundDeviceToken?.biometricEnabled || false;
 
@@ -79,7 +125,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
                 status: 'authenticated',
                 token: resp.token,
                 user: resp.user,
-                isBiometricEnabledInBackend: isBiometricEnabled
+                isBiometricEnabledInBackend: isBiometricEnabled,
+                deviceToken: resp.user.foundDeviceToken?.deviceToken
             });
             return true;
 
@@ -120,6 +167,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         // Primero verificar si hay token en storage
         const storedToken = await StorageAdapter.getItem('token');
         const storedBiometricEnabled = await StorageAdapter.getItem('biometricEnabled');
+        const storedDeviceToken = await StorageAdapter.getItem('deviceToken');
 
         if (!storedToken) {
             console.log('No token found in storage');
@@ -128,12 +176,16 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
                 token: undefined,
                 refreshToken: undefined,
                 user: undefined,
-                isBiometricEnabledInBackend: storedBiometricEnabled 
+                isBiometricEnabledInBackend: storedBiometricEnabled,
+                deviceToken: storedDeviceToken
             });
             return false;
         }
 
-        const resp = await authValidateToken();
+        let deviceToken = await StorageAdapter.getItem('deviceToken');
+
+
+        const resp = await authValidateToken(deviceToken);
 
         console.log('Check status response:', resp);
         if (!resp) {
@@ -142,7 +194,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
                 token: undefined,
                 refreshToken: undefined,
                 user: undefined,
-                isBiometricEnabledInBackend: storedBiometricEnabled
+                isBiometricEnabledInBackend: storedBiometricEnabled,
+                deviceToken: storedDeviceToken
             });
             return false;
         }
@@ -154,6 +207,10 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
             await StorageAdapter.setItem('refreshToken', resp.refreshToken);
         }
 
+        if (resp.user.foundDeviceToken) {
+            await StorageAdapter.setItem('deviceToken', resp.user.foundDeviceToken.deviceToken);
+        }
+
         // Determinar si la biometría está habilitada en el backend
         const isBiometricEnabled = resp.user.foundDeviceToken?.biometricEnabled || false;
 
@@ -161,10 +218,34 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
             status: 'authenticated',
             token: resp.token,
             user: resp.user,
-            isBiometricEnabledInBackend: isBiometricEnabled
+            isBiometricEnabledInBackend: isBiometricEnabled,
+            deviceToken: resp.user.foundDeviceToken?.deviceToken
         });
 
         return true;
     },
 
+    toggleBiometrics: async (enabled: boolean) => {
+        const deviceToken = await StorageAdapter.getItem('deviceToken');
+        if (!deviceToken) {
+            console.error("No device token available to toggle biometrics");
+            return false;
+        }
+        const result = await toggleBiometrics(enabled, deviceToken);
+
+        if (result) {
+            await StorageAdapter.setItem('biometricEnabled', enabled.toString());
+            set({ isBiometricEnabledInBackend: enabled });
+        }
+
+        return result;
+    },
+
+    removeStorageItem: async (key: string) => {
+        try {
+            await StorageAdapter.removeItem(key);
+        } catch (error) {
+            console.error(`Error removing item ${key} from storage:`, error);
+        }
+    }
 }))

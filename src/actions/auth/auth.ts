@@ -23,7 +23,7 @@ const returnUserToken = (data: LoginResponse) => {
 }
 
 
-export const authLogin = async (email: string, password: string, deviceToken: string): Promise<{ user: User, token: string, refreshToken: string } | null> => {
+export const authLogin = async (email: string, password: string, deviceToken?: string): Promise<{ user: User, token: string, refreshToken: string } | null> => {
     email = email.toLowerCase().trim();
     try {
         const { data } = await ditoApi.post<LoginResponse>('/auth/login', { email, password, deviceToken });
@@ -48,9 +48,10 @@ export const authLogin = async (email: string, password: string, deviceToken: st
 };
 
 
-export const authValidateToken = async (): Promise<{ user: User, token: string, refreshToken: string } | null> => {
+export const authValidateToken = async (deviceToken: string): Promise<{ user: User, token: string, refreshToken: string } | null> => {
     try {
-        const { data } = await ditoApi.get<LoginResponse>('/auth/check-status?deviceToken=86e7023e-37ad-487e-ade0-17f2941f5464');
+        const url = deviceToken ? `/auth/check-status?deviceToken=${deviceToken}` : '/auth/check-status';
+        const { data } = await ditoApi.get<LoginResponse>(url);
         console.log(data)
         return returnUserToken(data);
     } catch (error: any) {
