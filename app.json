@@ -8,15 +8,15 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "extra": {
-      "API_URL": "https://api-prod.miapp.com",
-      "API_KEY": "prod_key",
+      "API_URL": "localhost:3001/api",
+      "API_KEY": "18aa8ed0f10203f4d5fa5e3266d6be8eb885b1b1d379f955e64c37623f55b6e2",
       "APP_VERSION": "1.0.0",
-      "ENVIRONMENT": "production",
-      "DEBUG_MODE": false,
-      "MAX_RETRY_ATTEMPTS": 5,
-      "TIMEOUT_MS": 10000,
-      "COMPANY_NAME": "Empresa",
-      "SUPPORT_EMAIL": "support@empresa.com"
+      "ENVIRONMENT": "development",
+      "DEBUG_MODE": true,
+      "MAX_RETRY_ATTEMPTS": 3,
+      "TIMEOUT_MS": 5000,
+      "COMPANY_NAME": "Mi Empresa",
+      "SUPPORT_EMAIL": "soporte@miapp.com"
     },
     "splash": {
       "image": "./assets/splash-icon.png",
