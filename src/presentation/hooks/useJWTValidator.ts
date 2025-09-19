@@ -9,7 +9,7 @@ import { useSessionManager } from '../providers/SessionManagerProvider';
  */
 export const useJWTValidator = () => {
     const navigation = useNavigation();
-    const { status, token, refreshToken, logout, refreshSession } = useAuthStore();
+    const { status, token, refreshToken, logout } = useAuthStore();
     const { showSessionExtensionPrompt } = useSessionManager();
 
     /**
@@ -77,34 +77,25 @@ export const useJWTValidator = () => {
 
         // Verificar si el token está expirado
         if (isTokenExpired(token)) {
-            console.log('🔐 Token expired, attempting refresh...');
+            console.log('🔐 Token expired, asking user for session extension...');
             
-            // Si hay refresh token, intentar renovar automáticamente
+            // Si hay refresh token, preguntar al usuario inmediatamente
             if (refreshToken) {
-                console.log('🔄 Attempting automatic token refresh...');
+                console.log('🔄 Refresh token available, showing user prompt...');
                 
-                const refreshSuccess = await refreshSession();
+                // Mostrar modal de extensión de sesión inmediatamente
+                const userWantsToExtend = await showSessionExtensionPrompt();
                 
-                if (refreshSuccess) {
-                    console.log('✅ Token refreshed successfully');
-                    return;
-                } else {
-                    console.log('❌ Token refresh failed, showing user prompt');
-                    
-                    // Mostrar modal de extensión de sesión
-                    const userWantsToExtend = await showSessionExtensionPrompt();
-                    
-                    if (!userWantsToExtend) {
-                        console.log('� User decided not to extend session or extension failed');
-                        // El modal ya maneja el logout si es necesario
-                    }
+                if (!userWantsToExtend) {
+                    console.log('🚪 User decided not to extend session or extension failed');
+                    // El modal ya maneja el logout si es necesario
                 }
             } else {
-                // No hay refresh token, logout automático
-                console.log('❌ No refresh token available, automatic logout');
+                // No hay refresh token - logout automático
+                console.log('❌ No refresh token available during token validation');
                 Alert.alert(
                     '🔐 Sesión Expirada', 
-                    'Tu sesión ha expirado. Por favor inicia sesión nuevamente.',
+                    'Tu sesión ha expirado y no se puede renovar automáticamente. Por favor inicia sesión nuevamente.',
                     [
                         {
                             text: 'Aceptar',
@@ -116,7 +107,7 @@ export const useJWTValidator = () => {
         } else {
             console.log('✅ Token is still valid');
         }
-    }, [status, token, refreshToken, isTokenExpired, refreshSession, logout]);
+    }, [status, token, refreshToken, isTokenExpired, showSessionExtensionPrompt, logout]);
 
     /**
      * Configurar el listener de navegación
