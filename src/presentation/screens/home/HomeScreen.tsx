@@ -15,7 +15,7 @@ import { useAuthStore } from '../../store/auth/useAuthStore';
 
 type HomeScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
-  'HomeScreen'
+  'MainTabs'
 >;
 
 interface HomeScreenProps {
