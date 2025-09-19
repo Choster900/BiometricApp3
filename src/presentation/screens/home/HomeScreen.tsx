@@ -8,14 +8,15 @@ import {
   Switch,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../../navigation/StackNavigator';
+import { BottomTabParamList } from '../../navigation/BottomTabsNavigator';
 import { useAuthStore } from '../../store/auth/useAuthStore';
+import { useJWTValidator } from '../../hooks/useJWTValidator';
 
  
 
 type HomeScreenNavigationProp = StackNavigationProp<
-  RootStackParamList,
-  'HomeScreen'
+  BottomTabParamList,
+  'Home'
 >;
 
 interface HomeScreenProps {
@@ -25,6 +26,9 @@ interface HomeScreenProps {
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { logout, user, toggleBiometrics, isBiometricEnabledInBackend } = useAuthStore();
   const [isTogglingBiometric, setIsTogglingBiometric] = useState(false);
+  
+  // Hook para validar JWT automáticamente
+  useJWTValidator();
 
   const handleLogout = () => {
     Alert.alert(
@@ -39,7 +43,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           text: 'Cerrar Sesión',
           onPress: async () => {
             await logout();
-            navigation.navigate('LoginScreen');
+            // El AuthProvider se encarga de la navegación automáticamente
           },
         },
       ]

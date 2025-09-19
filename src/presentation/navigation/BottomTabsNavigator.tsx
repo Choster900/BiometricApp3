@@ -3,10 +3,12 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import HomeScreen from '../screens/home/HomeScreen';
 import Screen2 from '../screens/screen2/Screen2';
+import JWTInfo from '../screens/jwt/JWTInfo';
 
 export type BottomTabParamList = {
   Home: undefined;
   Screen2: undefined;
+  JWTInfo: undefined;
 };
 
 const Tab = createBottomTabNavigator<BottomTabParamList>();
@@ -22,6 +24,8 @@ export const BottomTabsNavigator = () => {
             iconName = focused ? 'home' : 'home-outline';
           } else if (route.name === 'Screen2') {
             iconName = focused ? 'apps' : 'apps-outline';
+          } else if (route.name === 'JWTInfo') {
+            iconName = focused ? 'key' : 'key-outline';
           } else {
             iconName = 'help-outline';
           }
@@ -57,6 +61,13 @@ export const BottomTabsNavigator = () => {
         component={Screen2} 
         options={{
           tabBarLabel: 'Pantalla 2',
+        }}
+      />
+      <Tab.Screen 
+        name="JWTInfo" 
+        component={JWTInfo} 
+        options={{
+          tabBarLabel: 'JWT Debug',
         }}
       />
     </Tab.Navigator>

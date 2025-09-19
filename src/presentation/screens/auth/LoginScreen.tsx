@@ -51,7 +51,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             const success = await login(email, password);
 
             if (success) {
-                navigation.navigate('HomeScreen');
+                // El AuthProvider se encarga de la navegación automáticamente
+                console.log('Login successful, AuthProvider will handle navigation');
             } else {
                 Alert.alert('Error', 'Credenciales incorrectas');
             }
@@ -79,7 +80,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             const success = await loginWithBiometrics();
 
             if (success) {
-                navigation.navigate('MainTabs');
+                // El AuthProvider se encarga de la navegación automáticamente
+                console.log('Biometric login successful, AuthProvider will handle navigation');
             } else {
                 Alert.alert('Error', 'Error al iniciar sesión con biometría');
             }

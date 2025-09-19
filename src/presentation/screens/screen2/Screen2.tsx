@@ -1,7 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useJWTValidator } from '../../hooks/useJWTValidator';
 
 const Screen2 = () => {
+  // Hook para validar JWT automáticamente
+  useJWTValidator();
+  
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Pantalla 2</Text>

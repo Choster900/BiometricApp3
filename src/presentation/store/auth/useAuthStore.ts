@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { User } from "../../../domain/entities/user";
 import { AuthStatus } from "../../../infrastructure/interfaces/auth.status";
 import { StorageAdapter } from "../../../config/adapters/async-storage";
-import { authLogin, authLoginWithDeviceToken, authValidateToken, setMainDevice } from "../../../actions/auth/auth";
+import { authLogin, authLoginWithDeviceToken, authValidateToken, setMainDevice, authRefreshToken } from "../../../actions/auth/auth";
 import { generateDeviceToken, saveDeviceToken, toggleBiometrics } from "../../../actions/security/security";
 
 
@@ -14,19 +14,19 @@ export interface AuthState {
     isBiometricEnabledInBackend?: boolean; // Se dara uso tambien en LoginScreen
     deviceToken?: string;
     deviceIsActive?: boolean;
+    isRefreshing?: boolean; // Estado para indicar si se está renovando el token
 
     login: (email: string, password: string) => Promise<boolean>;
     loginWithBiometrics: () => Promise<boolean>;
     logout: () => void;
     checkStatus: () => Promise<boolean>;
+    refreshSession: () => Promise<boolean>; // Nueva función para renovar sesión manualmente
 
     // Config
     toggleBiometrics: (enabled: boolean) => Promise<boolean>;
 
-
     //Extras
     removeStorageItem: (key: string) => Promise<void>;
-
 }
 
 
@@ -39,6 +39,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     isBiometricEnabledInBackend: false,
     deviceToken: undefined,
     deviceIsActive: undefined,
+    isRefreshing: false,
 
     login: async (email: string, password: string) => {
 
@@ -292,6 +293,67 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         }
 
         return result;
+    },
+
+    refreshSession: async () => {
+        const currentState = get();
+        
+        // Evitar múltiples refreshes simultáneos
+        if (currentState.isRefreshing) {
+            console.log('🔄 Ya hay un refresh en progreso, esperando...');
+            return false;
+        }
+
+        set({ isRefreshing: true });
+
+        try {
+            const storedRefreshToken = await StorageAdapter.getItem('refreshToken');
+            const storedDeviceToken = await StorageAdapter.getItem('deviceToken');
+
+            if (!storedRefreshToken || !storedDeviceToken) {
+                console.error('❌ No refresh token or device token available');
+                set({ isRefreshing: false });
+                return false;
+            }
+
+            const resp = await authRefreshToken(storedDeviceToken, storedRefreshToken);
+
+            if (!resp) {
+                console.error('❌ Failed to refresh session');
+                set({ isRefreshing: false });
+                return false;
+            }
+
+            // Actualizar tokens en storage
+            await StorageAdapter.setItem('token', resp.token);
+            await StorageAdapter.setItem('refreshToken', resp.refreshToken);
+
+            if (resp.user.foundDeviceToken) {
+                await StorageAdapter.setItem('deviceToken', resp.user.foundDeviceToken.deviceToken);
+            }
+
+            // Determinar si la biometría está habilitada en el backend
+            const isBiometricEnabled = resp.user.foundDeviceToken?.biometricEnabled || false;
+
+            // Actualizar estado
+            set({
+                status: 'authenticated',
+                token: resp.token,
+                refreshToken: resp.refreshToken,
+                user: resp.user,
+                isBiometricEnabledInBackend: isBiometricEnabled,
+                deviceToken: resp.user.foundDeviceToken?.deviceToken,
+                isRefreshing: false
+            });
+
+            console.log('✅ Session refreshed successfully');
+            return true;
+
+        } catch (error) {
+            console.error('❌ Error refreshing session:', error);
+            set({ isRefreshing: false });
+            return false;
+        }
     },
 
     removeStorageItem: async (key: string) => {

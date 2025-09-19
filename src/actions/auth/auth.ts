@@ -114,3 +114,34 @@ export const setMainDevice = async (deviceToken: string): Promise<SetMainDeviceR
         return null;
     }
 };
+
+export const authRefreshToken = async (deviceToken: string, refreshToken: string): Promise<{ user: User, token: string, refreshToken: string } | null> => {
+    try {
+        const { data } = await ditoApi.post<LoginResponse>('/auth/refresh-token', 
+            { deviceToken }, 
+            {
+                headers: {
+                    'Authorization': 'Bearer null',
+                    'Cookie': `secure_refresh_token=${refreshToken}; secure_token=${refreshToken}`
+                }
+            }
+        );
+        return returnUserToken(data);
+    } catch (error: any) {
+        // Si es error de autenticación (400, 401, 403), no mostrar error
+        if (error.response?.status === 400 || error.response?.status === 401 || error.response?.status === 403) {
+            console.log('Refresh token validation failed (silent)');
+            return null;
+        }
+
+        // Para otros errores sí mostrar el log
+        let message = 'Error renovando el token.';
+        if (error.response?.data?.message) {
+            message = error.response.data.message;
+        } else if (error.message) {
+            message = error.message;
+        }
+        console.error('Refresh token error:', message, error);
+        return null;
+    }
+};
