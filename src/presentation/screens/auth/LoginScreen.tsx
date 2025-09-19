@@ -51,7 +51,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             const success = await login(email, password);
 
             if (success) {
-                navigation.navigate('HomeScreen');
+                navigation.navigate('MainTabs');
             } else {
                 Alert.alert('Error', 'Credenciales incorrectas');
             }
