@@ -217,14 +217,26 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
                 token: undefined,
                 refreshToken: undefined,
                 user: undefined,
-                isBiometricEnabledInBackend: storedBiometricEnabled,
-                deviceToken: storedDeviceToken
+                isBiometricEnabledInBackend: storedBiometricEnabled === 'true',
+                deviceToken: storedDeviceToken || undefined
             });
             return false;
         }
 
         let deviceToken = await StorageAdapter.getItem('deviceToken');
 
+        if (!deviceToken) {
+            console.log('No device token found');
+            set({
+                status: 'unauthenticated',
+                token: undefined,
+                refreshToken: undefined,
+                user: undefined,
+                isBiometricEnabledInBackend: storedBiometricEnabled === 'true',
+                deviceToken: undefined
+            });
+            return false;
+        }
 
         const resp = await authValidateToken(deviceToken);
 
@@ -235,8 +247,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
                 token: undefined,
                 refreshToken: undefined,
                 user: undefined,
-                isBiometricEnabledInBackend: storedBiometricEnabled,
-                deviceToken: storedDeviceToken
+                isBiometricEnabledInBackend: storedBiometricEnabled === 'true',
+                deviceToken: storedDeviceToken || undefined
             });
             return false;
         }
