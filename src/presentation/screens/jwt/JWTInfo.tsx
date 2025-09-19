@@ -2,10 +2,12 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useAuthStore } from '../../store/auth/useAuthStore';
 import { useJWTValidator } from '../../hooks/useJWTValidator';
+import { useSessionManager } from '../../providers/SessionManagerProvider';
 
 const JWTInfo = () => {
-  const { token, user, status } = useAuthStore();
+  const { token, user, status, refreshSession } = useAuthStore();
   const { validateCurrentToken, isTokenExpired } = useJWTValidator();
+  const { showSessionExtensionPrompt } = useSessionManager();
 
   // Función para decodificar JWT para mostrar información
   const decodeJWT = (token: string) => {
@@ -52,6 +54,26 @@ const JWTInfo = () => {
 
       <TouchableOpacity style={styles.button} onPress={validateCurrentToken}>
         <Text style={styles.buttonText}>🔄 Validar Token Manualmente</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={[styles.button, styles.testButton]} 
+        onPress={async () => {
+          const extended = await showSessionExtensionPrompt();
+          console.log('Extension result:', extended);
+        }}
+      >
+        <Text style={styles.buttonText}>🧪 Probar Modal de Extensión</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={[styles.button, styles.refreshButton]} 
+        onPress={async () => {
+          const success = await refreshSession();
+          console.log('Refresh result:', success);
+        }}
+      >
+        <Text style={styles.buttonText}>🔄 Refresh Manual</Text>
       </TouchableOpacity>
 
       {token && (
@@ -123,6 +145,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#888',
     fontFamily: 'monospace',
+  },
+  testButton: {
+    backgroundColor: '#FF6B35',
+  },
+  refreshButton: {
+    backgroundColor: '#28A745',
   },
 });
 

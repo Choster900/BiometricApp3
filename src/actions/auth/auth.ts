@@ -115,14 +115,14 @@ export const setMainDevice = async (deviceToken: string): Promise<SetMainDeviceR
     }
 };
 
-export const authRefreshToken = async (deviceToken: string, refreshToken: string): Promise<{ user: User, token: string, refreshToken: string } | null> => {
+export const authRefreshToken = async (deviceToken: string, refreshToken: string, currentToken: string): Promise<{ user: User, token: string, refreshToken: string } | null> => {
     try {
         const { data } = await ditoApi.post<LoginResponse>('/auth/refresh-token', 
             { deviceToken }, 
             {
                 headers: {
-                    'Authorization': 'Bearer null',
-                    'Cookie': `secure_refresh_token=${refreshToken}; secure_token=${refreshToken}`
+                    'Authorization': `Bearer ${currentToken}`,
+                    'Cookie': `secure_refresh_token=${refreshToken}; secure_token=${currentToken}`
                 }
             }
         );

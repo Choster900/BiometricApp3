@@ -309,14 +309,15 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         try {
             const storedRefreshToken = await StorageAdapter.getItem('refreshToken');
             const storedDeviceToken = await StorageAdapter.getItem('deviceToken');
+            const storedToken = await StorageAdapter.getItem('token');
 
-            if (!storedRefreshToken || !storedDeviceToken) {
-                console.error('❌ No refresh token or device token available');
+            if (!storedRefreshToken || !storedDeviceToken || !storedToken) {
+                console.error('❌ No refresh token, device token or current token available');
                 set({ isRefreshing: false });
                 return false;
             }
 
-            const resp = await authRefreshToken(storedDeviceToken, storedRefreshToken);
+            const resp = await authRefreshToken(storedDeviceToken, storedRefreshToken, storedToken);
 
             if (!resp) {
                 console.error('❌ Failed to refresh session');

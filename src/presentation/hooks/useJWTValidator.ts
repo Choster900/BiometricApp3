@@ -2,6 +2,7 @@ import { useEffect, useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../store/auth/useAuthStore';
 import { Alert, AppState, AppStateStatus } from 'react-native';
+import { useSessionManager } from '../providers/SessionManagerProvider';
 
 /**
  * Hook para validar JWT automáticamente en cambios de pantalla
@@ -9,6 +10,7 @@ import { Alert, AppState, AppStateStatus } from 'react-native';
 export const useJWTValidator = () => {
     const navigation = useNavigation();
     const { status, token, refreshToken, logout, refreshSession } = useAuthStore();
+    const { showSessionExtensionPrompt } = useSessionManager();
 
     /**
      * Decodifica el JWT y extrae la información de expiración
@@ -89,34 +91,13 @@ export const useJWTValidator = () => {
                 } else {
                     console.log('❌ Token refresh failed, showing user prompt');
                     
-                    // Mostrar confirmación al usuario
-                    Alert.alert(
-                        '🔐 Sesión Expirada',
-                        'Tu sesión ha expirado. ¿Deseas renovar tu sesión para continuar?',
-                        [
-                            {
-                                text: 'Cerrar Sesión',
-                                style: 'destructive',
-                                onPress: () => {
-                                    console.log('🚪 User chose to logout');
-                                    logout();
-                                }
-                            },
-                            {
-                                text: 'Renovar Sesión',
-                                style: 'default',
-                                onPress: async () => {
-                                    console.log('🔄 User chose to refresh session');
-                                    const success = await refreshSession();
-                                    if (!success) {
-                                        Alert.alert('❌ Error', 'No se pudo renovar la sesión. Cerrando sesión...');
-                                        logout();
-                                    }
-                                }
-                            }
-                        ],
-                        { cancelable: false }
-                    );
+                    // Mostrar modal de extensión de sesión
+                    const userWantsToExtend = await showSessionExtensionPrompt();
+                    
+                    if (!userWantsToExtend) {
+                        console.log('� User decided not to extend session or extension failed');
+                        // El modal ya maneja el logout si es necesario
+                    }
                 }
             } else {
                 // No hay refresh token, logout automático
