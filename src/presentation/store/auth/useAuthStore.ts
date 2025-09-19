@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { User } from "../../../domain/entities/user";
 import { AuthStatus } from "../../../infrastructure/interfaces/auth.status";
 import { StorageAdapter } from "../../../config/adapters/async-storage";
-import { authLogin, authLoginWithDeviceToken, authValidateToken } from "../../../actions/auth/auth";
+import { authLogin, authLoginWithDeviceToken, authValidateToken, setMainDevice } from "../../../actions/auth/auth";
 import { generateDeviceToken, saveDeviceToken, toggleBiometrics } from "../../../actions/security/security";
 
 
@@ -13,6 +13,7 @@ export interface AuthState {
     user?: User;
     isBiometricEnabledInBackend?: boolean; // Se dara uso tambien en LoginScreen
     deviceToken?: string;
+    deviceIsActive?: boolean;
 
     login: (email: string, password: string) => Promise<boolean>;
     loginWithBiometrics: () => Promise<boolean>;
@@ -37,6 +38,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     user: undefined,
     isBiometricEnabledInBackend: false,
     deviceToken: undefined,
+    deviceIsActive: undefined,
 
     login: async (email: string, password: string) => {
 
@@ -73,7 +75,6 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
             await saveDeviceToken(deviceToken);
         }
 
-
         // Guardar el device token del dispositivo
         if (resp.user.foundDeviceToken) {
             await StorageAdapter.setItem('deviceToken', resp.user.foundDeviceToken.deviceToken);
@@ -87,6 +88,25 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         // Determinar si la biometría está habilitada en el backend
         const isBiometricEnabled = resp.user.foundDeviceToken?.biometricEnabled || false;
 
+
+        console.log("Device is active status:", resp.user.foundDeviceToken?.isActive);
+        if (!resp.user.foundDeviceToken.isActive) {
+            console.log("Device token is not active");
+            /*  
+ 
+             set({
+                 status: 'unauthenticated',
+                 token: undefined,
+                 user: undefined,
+                 isBiometricEnabledInBackend: isBiometricEnabled,
+                 deviceToken: resp.user.foundDeviceToken?.deviceToken,
+                 deviceIsActive: resp.user.foundDeviceToken?.isActive
+             });
+ 
+             return false; */
+        } else {
+            console.log("Device token is active");
+        }
         set({
             status: 'authenticated',
             token: resp.token,
@@ -120,6 +140,27 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
             // Determinar si la biometría está habilitada en el backend
             const isBiometricEnabled = resp.user.foundDeviceToken?.biometricEnabled || false;
+
+            console.log("Device is active status:", resp.user.foundDeviceToken?.isActive);
+            if (!resp.user.foundDeviceToken.isActive) {
+                console.log("Device token is not active");
+
+                /*   set({
+                      status: 'unauthenticated',
+                      token: undefined,
+                      user: undefined,
+                      isBiometricEnabledInBackend: isBiometricEnabled,
+                      deviceToken: resp.user.foundDeviceToken?.deviceToken,
+                      deviceIsActive: resp.user.foundDeviceToken?.isActive
+                  });
+  
+                  return false; */
+
+                console.log("Device token is not active, trying to set as main device");
+                setMainDevice(resp.user.foundDeviceToken.deviceToken);
+            } else {
+                console.log("Device token is active");
+            }
 
             set({
                 status: 'authenticated',
@@ -247,5 +288,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         } catch (error) {
             console.error(`Error removing item ${key} from storage:`, error);
         }
-    }
+    },
+
+
 }))

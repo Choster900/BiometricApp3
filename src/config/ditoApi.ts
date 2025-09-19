@@ -33,7 +33,7 @@ const authStore = {
 // Función para manejar 401 no autorizado
 const handleUnauthorized = async () => {
     try {
-        await AsyncStorage.removeItem('token');
+        //await AsyncStorage.removeItem('token');
         console.log('🧹 Token eliminado por sesión expirada');
         // Aquí puedes mostrar un modal o redirigir al login
     } catch (error) {

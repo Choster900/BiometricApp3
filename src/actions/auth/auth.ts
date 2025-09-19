@@ -88,3 +88,29 @@ export const authLoginWithDeviceToken = async (deviceToken: string): Promise<{ u
         return null;
     }
 };
+
+
+
+interface SetMainDeviceResponse {
+    deviceToken: string;
+    isMainDevice: true;
+    message: string;
+    requiresConfirmation: false;
+
+}
+
+export const setMainDevice = async (deviceToken: string): Promise<SetMainDeviceResponse | null> => {
+    try {
+        const { data } = await ditoApi.post<SetMainDeviceResponse>('/auth/set-main-device', { deviceToken });
+        return data;
+    } catch (error: any) {
+        let message = 'Error verificando dispositivo principal.';
+        if (error.response?.data?.message) {
+            message = error.response.data.message;
+        } else if (error.message) {
+            message = error.message;
+        }
+        console.error('Check main device error:', message, error);
+        return null;
+    }
+};
