@@ -14,7 +14,6 @@ import { useBiometricAuth } from '../../hooks/useBiometricAuth';
 import { EnvConfig } from '../../../types/env';
 import Constants from 'expo-constants';
 
-
 type LoginScreenNavigationProp = StackNavigationProp<
     RootStackParamList,
     'LoginScreen'
@@ -39,7 +38,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     } = useBiometricAuth();
 
     const handleLogin = async () => {
-        // Validación básica
         if (!email.trim() || !password.trim()) {
             Alert.alert('Error', 'Por favor ingresa email y contraseña');
             return;
@@ -67,7 +65,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         try {
             setIsLoading(true);
 
-            // Primero verificar la biometría
             const biometricResult = await authenticateAsync();
 
             if (!biometricResult.success) {
@@ -75,7 +72,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 return;
             }
 
-            // Si la biometría es exitosa, hacer login con el device token
             const success = await loginWithBiometrics();
 
             if (success) {
@@ -94,24 +90,16 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     const handleRemoveStorage = () => {
         Alert.alert(
             'Limpiar Almacenamiento',
-            '¿Estás seguro de que quieres eliminar todos los datos almacenados? Esta acción no se puede deshacer.',
+            '¿Estás seguro de que quieres eliminar todos los datos almacenados?',
             [
-                {
-                    text: 'Cancelar',
-                    style: 'cancel',
-                },
+                { text: 'Cancelar', style: 'cancel' },
                 {
                     text: 'Eliminar',
                     style: 'destructive',
                     onPress: async () => {
                         try {
-                            // Limpiar todos los items del storage
-                           /*  await removeStorageItem('token');
-                            await removeStorageItem('refreshToken');
-                            await removeStorageItem('foundDeviceToken'); */
                             await removeStorageItem('deviceToken');
-                            
-                            Alert.alert('Éxito', 'Almacenamiento limpiado correctamente');
+                            Alert.alert('Éxito', 'Almacenamiento limpiado');
                         } catch (error) {
                             console.error('Error removing storage:', error);
                             Alert.alert('Error', 'No se pudo limpiar el almacenamiento');
@@ -124,31 +112,23 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
     const envConfig = Constants.expoConfig?.extra as EnvConfig;
 
-
     return (
-
         <View style={styles.container}>
-            <Text style={styles.title}>Iniciar Sesión</Text>
-            <Text style={{ textAlign: 'center', marginBottom: 10, color: '#888' }}>
-                {envConfig?.API_URL || 'No BASE URL definida'}
-            </Text>
-            <TouchableOpacity
-                style={styles.removeButton}
-                onPress={handleRemoveStorage}
-            >
-                <Text style={styles.removeButtonText}>🗑️ Limpiar Datos</Text>
-            </TouchableOpacity>
-            <Text style={{ textAlign: 'center', marginBottom: 10, color: '#888' }}>
-                {`Device Token: ${deviceToken || 'No device token disponible'}`}
-            </Text>
-            <View style={styles.formContainer}>
+            {/* Header minimalista */}
+            <View style={styles.header}>
+                <Text style={styles.title}>Bienvenido</Text>
+            </View>
+
+            {/* Formulario principal */}
+            <View style={styles.form}>
                 <TextInput
                     style={styles.input}
-                    placeholder="Email"
+                    placeholder="Correo electrónico"
                     value={email}
                     onChangeText={setEmail}
                     autoCapitalize="none"
                     keyboardType="email-address"
+                    placeholderTextColor="#9CA3AF"
                 />
 
                 <TextInput
@@ -158,41 +138,49 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                     onChangeText={setPassword}
                     secureTextEntry
                     autoCapitalize="none"
+                    placeholderTextColor="#9CA3AF"
                 />
 
                 <TouchableOpacity
-                    style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
+                    style={[styles.button, styles.primaryButton, isLoading && styles.buttonDisabled]}
                     onPress={handleLogin}
                     disabled={isLoading}
                 >
-                    <Text style={styles.loginButtonText}>
+                    <Text style={styles.primaryButtonText}>
                         {isLoading ? 'Iniciando...' : 'Iniciar Sesión'}
                     </Text>
                 </TouchableOpacity>
 
-                {/* Separador y botón biométrico */}
+                {/* Botón biométrico (solo si está disponible) */}
                 {capabilities.isAvailable && !isBiometricLoading && isBiometricEnabledInBackend && (
-                    <>
-                        <View style={styles.separator}>
-                            <View style={styles.separatorLine} />
-                            <Text style={styles.separatorText}>o</Text>
-                            <View style={styles.separatorLine} />
-                        </View>
-
-                        {/* Botón de autenticación biométrica */}
-                        <TouchableOpacity
-                            style={[styles.biometricButton, isLoading && styles.loginButtonDisabled]}
-                            onPress={handleBiometricLogin}
-                            disabled={isLoading}
-                        >
-                            <Text style={styles.biometricIcon}>{getBiometricIcon()}</Text>
-                            <Text style={styles.biometricButtonText}>
-                                {isLoading ? 'Autenticando...' : `Usar ${getBiometricTypeText()}`}
-                            </Text>
-                        </TouchableOpacity>
-                    </>
+                    <TouchableOpacity
+                        style={[styles.button, styles.biometricButton, isLoading && styles.buttonDisabled]}
+                        onPress={handleBiometricLogin}
+                        disabled={isLoading}
+                    >
+                        <Text style={styles.biometricIcon}>{getBiometricIcon()}</Text>
+                        <Text style={styles.biometricButtonText}>
+                            {getBiometricTypeText()}
+                        </Text>
+                    </TouchableOpacity>
                 )}
             </View>
+
+            {/* Footer con opciones de desarrollo (oculto en producción) */}
+            {__DEV__ && (
+                <View style={styles.devOptions}>
+                    <TouchableOpacity
+                        style={styles.devButton}
+                        onPress={handleRemoveStorage}
+                    >
+                        <Text style={styles.devButtonText}>Limpiar Datos</Text>
+                    </TouchableOpacity>
+                    
+                    <Text style={styles.devInfo}>
+                        {envConfig?.API_URL?.replace('https://', '').replace('http://', '') || 'Sin URL'}
+                    </Text>
+                </View>
+            )}
         </View>
     );
 };
@@ -200,98 +188,91 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#FFFFFF',
         justifyContent: 'center',
-        padding: 20,
+        paddingHorizontal: 32,
+    },
+    header: {
+        alignItems: 'center',
+        marginBottom: 48,
     },
     title: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginBottom: 40,
-        color: '#333',
+        fontSize: 32,
+        fontWeight: '300',
+        color: '#1F2937',
+        letterSpacing: -0.5,
     },
-    formContainer: {
-        backgroundColor: 'white',
-        padding: 20,
-        borderRadius: 10,
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 3.84,
-        elevation: 5,
+    form: {
+        gap: 16,
     },
     input: {
+        height: 56,
         borderWidth: 1,
-        borderColor: '#ddd',
-        padding: 15,
-        borderRadius: 8,
-        marginBottom: 15,
+        borderColor: '#E5E7EB',
+        borderRadius: 12,
+        paddingHorizontal: 16,
         fontSize: 16,
+        color: '#1F2937',
+        backgroundColor: '#FAFAFA',
     },
-    loginButton: {
-        backgroundColor: '#007AFF',
-        padding: 15,
-        borderRadius: 8,
+    button: {
+        height: 56,
+        borderRadius: 12,
+        justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 10,
-    },
-    loginButtonDisabled: {
-        backgroundColor: '#A0A0A0',
-    },
-    loginButtonText: {
-        color: 'white',
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    separator: {
         flexDirection: 'row',
-        alignItems: 'center',
-        marginVertical: 20,
     },
-    separatorLine: {
-        flex: 1,
-        height: 1,
-        backgroundColor: '#ddd',
+    primaryButton: {
+        backgroundColor: '#1F2937',
+        marginTop: 8,
     },
-    separatorText: {
-        marginHorizontal: 10,
-        color: '#888',
-        fontSize: 14,
+    primaryButtonText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        fontWeight: '500',
     },
     biometricButton: {
-        backgroundColor: '#34C759',
-        padding: 15,
-        borderRadius: 8,
-        alignItems: 'center',
-        flexDirection: 'row',
-        justifyContent: 'center',
+        backgroundColor: '#F9FAFB',
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        gap: 8,
     },
     biometricIcon: {
-        fontSize: 20,
-        marginRight: 8,
+        fontSize: 18,
     },
     biometricButtonText: {
-        color: 'white',
+        color: '#4B5563',
         fontSize: 16,
-        fontWeight: '600',
+        fontWeight: '500',
     },
-    removeButton: {
-        backgroundColor: '#FF3B30',
-        padding: 10,
-        borderRadius: 6,
+    buttonDisabled: {
+        opacity: 0.5,
+    },
+    devOptions: {
+        position: 'absolute',
+        bottom: 40,
+        left: 32,
+        right: 32,
         alignItems: 'center',
-        marginBottom: 10,
-        alignSelf: 'center',
-        paddingHorizontal: 20,
+        gap: 8,
     },
-    removeButtonText: {
-        color: 'white',
-        fontSize: 14,
-        fontWeight: '600',
+    devButton: {
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        backgroundColor: '#FEF2F2',
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#FECACA',
+    },
+    devButtonText: {
+        color: '#DC2626',
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    devInfo: {
+        fontSize: 10,
+        color: '#9CA3AF',
+        fontFamily: 'monospace',
     },
 });
 
