@@ -5,6 +5,7 @@ import { Text, View } from 'react-native';
 import { RootStackParamList } from '../navigation/StackNavigator';
 import { PropsWithChildren, useEffect } from 'react';
 import { useAuthStore } from '../store/auth/useAuthStore';
+import { setAuthStore } from '../../config/ditoApi';
 
 export const AuthProvider = ({ children }: PropsWithChildren) => {
 
@@ -12,13 +13,19 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
     const { checkStatus, status } = useAuthStore();
 
+    const authStore = useAuthStore();
+
+     useEffect(() => {
+        setAuthStore(authStore);
+    }, [authStore]);
+
     useEffect(() => {
         checkStatus();
     }, []);
 
     useEffect(() => {
 
-        if ( status !== 'checking' ) {
+        if ( status !== 'checking' && status !== 'expired' ) {
 
             if ( status === 'authenticated' ) {
 

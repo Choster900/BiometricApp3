@@ -1,8 +1,29 @@
 import axios from 'axios';
-import { Platform } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { EnvConfig } from '../types/env';
+
+// Importar navigation service y store para manejar redirects
+let navigationRef: any = null;
+let authStoreLet: any = null; // ✅ Referencia al store de auth
+
+/**
+ * Función para establecer la referencia de navegación
+ * Debe ser llamada desde el componente principal de navegación
+ */
+const setNavigationRef = (ref: any) => {
+    navigationRef = ref;
+};
+
+/**
+ * Función para establecer la referencia del store de auth
+ * Permite hacer logout desde el interceptor
+ */
+const setAuthStore = (store: any) => {
+    authStoreLet = store;
+};
+
 
 // Obtener configuración del entorno
 const envConfig = Constants.expoConfig?.extra as EnvConfig;
@@ -30,14 +51,167 @@ const authStore = {
     }
 };
 
-// Función para manejar 401 no autorizado
+/**
+ * Función para mostrar opciones cuando la sesión expira
+ * NO hace logout automático, solo presenta las opciones al usuario
+ */
 const handleUnauthorized = async () => {
     try {
-        //await AsyncStorage.removeItem('token');
-        console.log('🧹 Token eliminado por sesión expirada');
-        // Aquí puedes mostrar un modal o redirigir al login
+
+        Alert.alert(
+            'Sesión Expirada',
+            'Tu sesión ha expirado. ¿Qué deseas hacer?',
+            [
+                {
+                    text: 'Salir al Login',
+                    style: 'cancel',
+                    onPress: async () => {
+
+                        // ✅ SOLO hacer logout si el usuario lo elige explícitamente
+                        if (authStore && authStoreLet.logout) {
+                            await authStoreLet.logout();
+                        } else {
+                            // Fallback: Limpiar AsyncStorage manualmente
+                            await AsyncStorage.multiRemove(['token', 'userInfo']);
+                        }
+
+                        try {
+                            if (navigationRef) {
+
+                                // Método 1: Reset directo
+                                navigationRef.reset({
+                                    index: 0,
+                                    routes: [{ name: 'LoginScreen' }],
+                                });
+
+                            } else {
+                                console.log('❌ Navigation ref not available');
+                            }
+                        } catch (navError) {
+
+                            try {
+                                navigationRef?.navigate?.('LoginScreen');
+                            } catch (fallbackError) {
+                                console.error('❌ Fallback navigation failed:', fallbackError);
+                            }
+                        }
+                    }
+                },
+                {
+                    text: 'Extender Sesión',
+                    onPress: async () => {
+
+                        if (authStore && authStoreLet.extendSession) {
+
+                            try {
+                                const success = await authStoreLet.extendSession();
+
+                                if (success) {
+                                    Alert.alert(
+                                        'Sesión Extendida',
+                                        'Tu sesión ha sido extendida exitosamente. Puedes continuar usando la aplicación.',
+                                        [{ text: 'OK' }]
+                                    );
+                                    // ✅ NO navegar - mantener en pantalla actual
+                                } else {
+                                    console.log('❌ Failed to extend session');
+                                    Alert.alert(
+                                        'Error',
+                                        'No se pudo extender la sesión. Tu token de dispositivo puede haber expirado. Por favor inicia sesión nuevamente.',
+                                        [
+                                            {
+                                                text: 'OK',
+                                                onPress: async () => {
+                                                    // Si falla la extensión, hacer logout y redirigir al login
+                                                    if (authStore && authStoreLet.logout) {
+                                                        await authStoreLet.logout();
+                                                    } else {
+                                                        await AsyncStorage.multiRemove(['token', 'userInfo']);
+                                                    }
+
+                                                    try {
+                                                        if (navigationRef) {
+                                                            navigationRef.reset({
+                                                                index: 0,
+                                                                routes: [{ name: 'LoginScreen' }],
+                                                            });
+                                                        }
+                                                    } catch (navError) {
+                                                        console.error('❌ Navigation error:', navError);
+                                                        navigationRef?.navigate?.('LoginScreen');
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    );
+                                }
+                            } catch (error) {
+                                Alert.alert(
+                                    'Error',
+                                    'Ocurrió un error al extender la sesión. Por favor inicia sesión nuevamente.',
+                                    [
+                                        {
+                                            text: 'OK',
+                                            onPress: async () => {
+                                                if (authStore && authStoreLet.logout) {
+                                                    await authStoreLet.logout();
+                                                } else {
+                                                    await AsyncStorage.multiRemove(['token', 'userInfo']);
+                                                }
+
+                                                try {
+                                                    if (navigationRef) {
+                                                        navigationRef.reset({
+                                                            index: 0,
+                                                            routes: [{ name: 'LoginScreen' }],
+                                                        });
+                                                    }
+                                                } catch (navError) {
+                                                    console.error('❌ Navigation error:', navError);
+                                                    navigationRef?.navigate?.('LoginScreen');
+                                                }
+                                            }
+                                        }
+                                    ]
+                                );
+                            }
+                        } else {
+                            Alert.alert(
+                                'Error',
+                                'No se puede extender la sesión en este momento. Por favor inicia sesión nuevamente.',
+                                [
+                                    {
+                                        text: 'OK',
+                                        onPress: async () => {
+                                            if (authStore && authStoreLet.logout) {
+                                                await authStoreLet.logout();
+                                            } else {
+                                                await AsyncStorage.multiRemove(['token', 'userInfo']);
+                                            }
+
+                                            try {
+                                                if (navigationRef) {
+                                                    navigationRef.reset({
+                                                        index: 0,
+                                                        routes: [{ name: 'LoginScreen' }],
+                                                    });
+                                                }
+                                            } catch (navError) {
+                                                console.error('❌ Navigation error:', navError);
+                                                navigationRef?.navigate?.('LoginScreen');
+                                            }
+                                        }
+                                    }
+                                ]
+                            );
+                        }
+                    }
+                }
+            ],
+            { cancelable: false } // ✅ Prevenir que se cierre tocando fuera
+        );
     } catch (error) {
-        console.error('Error limpiando token:', error);
+        console.error('❌ Error handling unauthorized:', error);
     }
 };
 
@@ -79,10 +253,10 @@ export const getNetworkErrorMessage = (error: any): string => {
  */
 export const isNetworkError = (error: any): boolean => {
     return !error.response ||
-           error.code === 'NETWORK_ERROR' ||
-           error.message === 'Network Error' ||
-           error.code === 'ECONNREFUSED' ||
-           error.code === 'ECONNABORTED';
+        error.code === 'NETWORK_ERROR' ||
+        error.message === 'Network Error' ||
+        error.code === 'ECONNREFUSED' ||
+        error.code === 'ECONNABORTED';
 };
 
 /**
@@ -278,4 +452,4 @@ ditoApi.interceptors.response.use(
     }
 );
 
-export { ditoApi };
+export { ditoApi, setAuthStore, setNavigationRef };

@@ -114,3 +114,20 @@ export const setMainDevice = async (deviceToken: string): Promise<SetMainDeviceR
         return null;
     }
 };
+
+
+export const refreshToken = async (deviceToken: string) => {
+    try {
+        const { data } = await ditoApi.post<LoginResponse>('/auth/refresh-token', { deviceToken });
+        return data;
+    } catch (error: any) {
+        let message = 'Error al refrescar el token.';
+        if (error.response?.data?.message) {
+            message = error.response.data.message;
+        } else if (error.message) {
+            message = error.message;
+        }
+        console.error('Refresh token error:', message, error);
+        return null;
+    }
+};

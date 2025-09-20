@@ -19,6 +19,7 @@ export interface AuthState {
     loginWithBiometrics: () => Promise<boolean>;
     logout: () => void;
     checkStatus: () => Promise<boolean>;
+    extendSession: () => Promise<boolean>;
 
     // Config
     toggleBiometrics: (enabled: boolean) => Promise<boolean>;
@@ -92,8 +93,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         console.log("Device is active status:", resp.user.foundDeviceToken?.isActive);
         if (!resp.user.foundDeviceToken.isActive) {
             console.log("Device token is not active");
-            /*  
- 
+            /*
+
              set({
                  status: 'unauthenticated',
                  token: undefined,
@@ -102,7 +103,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
                  deviceToken: resp.user.foundDeviceToken?.deviceToken,
                  deviceIsActive: resp.user.foundDeviceToken?.isActive
              });
- 
+
              return false; */
         } else {
             console.log("Device token is active");
@@ -153,7 +154,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
                       deviceToken: resp.user.foundDeviceToken?.deviceToken,
                       deviceIsActive: resp.user.foundDeviceToken?.isActive
                   });
-  
+
                   return false; */
 
                 console.log("Device token is not active, trying to set as main device");
@@ -240,16 +241,26 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
         const resp = await authValidateToken(deviceToken);
 
-        console.log('Check status response:', resp);
+        console.log("Auth validate token response:", resp);
         if (!resp) {
-            set({
-                status: 'unauthenticated',
-                token: undefined,
-                refreshToken: undefined,
-                user: undefined,
-                isBiometricEnabledInBackend: storedBiometricEnabled === 'true',
-                deviceToken: storedDeviceToken || undefined
-            });
+
+            const storedToken = await StorageAdapter.getItem('token');
+
+            console.log(storedToken)
+            if (storedToken) {
+                set({
+                    status: 'expired'
+                });
+            } else {
+                set({
+                    status: 'unauthenticated',
+                    token: undefined,
+                    refreshToken: undefined,
+                    user: undefined,
+                    isBiometricEnabledInBackend: storedBiometricEnabled === 'true',
+                    deviceToken: storedDeviceToken || undefined
+                });
+            }
             return false;
         }
 
@@ -302,5 +313,37 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         }
     },
 
+    extendSession: async () => {
+        try {
+            const storedDeviceToken = await StorageAdapter.getItem('deviceToken');
 
+            if (!storedDeviceToken) {
+                console.log('❌ No device token found, cannot extend session');
+                return false;
+            }
+            const resp = await authLoginWithDeviceToken(storedDeviceToken);
+
+            if (!resp) {
+                console.log('❌ Failed to extend session - device token may be invalid');
+                return false;
+            }
+            await StorageAdapter.setItem('token', resp.token);
+
+            const isBiometricEnabled = resp.user.foundDeviceToken?.biometricEnabled || false;
+
+            set({
+                status: 'authenticated',
+                token: resp.token,
+                user: resp.user,
+                isBiometricEnabledInBackend: isBiometricEnabled,
+                deviceToken: resp.user.foundDeviceToken?.deviceToken
+            });
+
+            return true;
+
+        } catch (error: any) {
+            console.error('❌ Error extending session:', error);
+            return false;
+        }
+    },
 }))
