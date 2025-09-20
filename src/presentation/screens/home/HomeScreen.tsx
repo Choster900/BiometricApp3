@@ -10,8 +10,9 @@ import {
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../navigation/StackNavigator';
 import { useAuthStore } from '../../store/auth/useAuthStore';
+import { useBiometricAuth } from '../../hooks/useBiometricAuth';
 
- 
+
 
 type HomeScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -24,6 +25,7 @@ interface HomeScreenProps {
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { logout, user, toggleBiometrics, isBiometricEnabledInBackend } = useAuthStore();
+  const { capabilities, authenticateAsync, getBiometricTypeText } = useBiometricAuth();
   const [isTogglingBiometric, setIsTogglingBiometric] = useState(false);
 
   const handleLogout = () => {
@@ -47,16 +49,69 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   };
 
   const handleToggleBiometrics = async (enabled: boolean) => {
+    // 🔐 Primero solicitar autenticación biométrica para verificar identidad
+    if (capabilities.isAvailable) {
+      try {
+        const biometricResult = await authenticateAsync();
+
+        if (!biometricResult.success) {
+          Alert.alert(
+            'Autenticación requerida',
+            `Necesitas autenticarte con ${getBiometricTypeText().toLowerCase()} para cambiar esta configuración.`,
+            [
+              {
+                text: 'OK',
+                style: 'default'
+              }
+            ]
+          );
+          return; // No continuar si la autenticación biométrica falló
+        }
+      } catch (error) {
+        console.error('Error during biometric authentication:', error);
+        Alert.alert(
+          'Error de autenticación',
+          'No se pudo verificar tu identidad. Inténtalo de nuevo.'
+        );
+        return;
+      }
+    } else {
+      // Si no hay biometría disponible, mostrar un alert de confirmación adicional
+      const shouldContinue = await new Promise<boolean>((resolve) => {
+        Alert.alert(
+          'Confirmación requerida',
+          '¿Estás seguro de que quieres cambiar la configuración de seguridad?',
+          [
+            {
+              text: 'Cancelar',
+              style: 'cancel',
+              onPress: () => resolve(false)
+            },
+            {
+              text: 'Continuar',
+              style: 'default',
+              onPress: () => resolve(true)
+            }
+          ]
+        );
+      });
+
+      if (!shouldContinue) {
+        return;
+      }
+    }
+
+    // 🔄 Proceder con el cambio de configuración
     setIsTogglingBiometric(true);
-    
+
     try {
       const success = await toggleBiometrics(enabled);
-      
+
       if (success) {
         Alert.alert(
           'Éxito',
-          enabled 
-            ? 'Autenticación biométrica activada correctamente' 
+          enabled
+            ? 'Autenticación biométrica activada correctamente'
             : 'Autenticación biométrica desactivada correctamente'
         );
       } else {
@@ -81,11 +136,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       <View style={styles.content}>
         <Text style={styles.title}>¡Bienvenido{user?.fullName ? `, ${user.fullName}` : ''}!</Text>
         <Text style={styles.subtitle}>Has iniciado sesión correctamente</Text>
-        
+
         {user?.email && (
           <Text style={styles.userInfo}>Email: {user.email}</Text>
         )}
-        
+
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Panel Principal</Text>
           <Text style={styles.cardContent}>
@@ -93,22 +148,22 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             principal de tu aplicación.
           </Text>
         </View>
-        
+
         {/* Sección de Configuración de Biometría */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>🔐 Configuración de Seguridad</Text>
-          
+
           <View style={styles.switchContainer}>
             <View style={styles.switchTextContainer}>
               <Text style={styles.switchTitle}>Autenticación Biométrica</Text>
               <Text style={styles.switchSubtitle}>
-                {isBiometricEnabledInBackend 
+                {isBiometricEnabledInBackend
                   ? 'Puedes usar Face ID o huella dactilar para iniciar sesión'
                   : 'Usa tu contraseña para iniciar sesión'
                 }
               </Text>
             </View>
-            
+
             <Switch
               value={isBiometricEnabledInBackend || false}
               onValueChange={handleToggleBiometrics}
@@ -118,12 +173,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               ios_backgroundColor="#ddd"
             />
           </View>
-          
+
           {isTogglingBiometric && (
             <Text style={styles.loadingText}>Actualizando configuración...</Text>
           )}
         </View>
-        
+
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
         </TouchableOpacity>
