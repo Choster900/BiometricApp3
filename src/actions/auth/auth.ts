@@ -9,7 +9,7 @@ const returnUserToken = (data: LoginResponse) => {
         id: data.id,
         email: data.email,
         fullName: data.fullName,
-        isActive: data.isActive,
+        isActive: data.isActive ?? true,
         roles: data.roles,
         allowMultipleSessions: data.allowMultipleSessions,
         foundDeviceToken: data.foundDeviceToken ?? null,

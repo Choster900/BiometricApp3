@@ -175,9 +175,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                     >
                         <Text style={styles.devButtonText}>Limpiar Datos</Text>
                     </TouchableOpacity>
-                    
+
                     <Text style={styles.devInfo}>
                         {envConfig?.API_URL?.replace('https://', '').replace('http://', '') || 'Sin URL'}
+                        {'\n'}
+                        {deviceToken || 'Sin device token'}
+
                     </Text>
                 </View>
             )}

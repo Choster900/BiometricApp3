@@ -13,7 +13,7 @@ let API_URL = envConfig?.API_URL || 'localhost:3001/api';
 
 // Para desarrollo: Android necesita 10.0.2.2 en lugar de localhost
 if (STAGE === 'development' && API_URL.includes('localhost')) {
-    API_URL = Platform.OS === 'android' 
+    API_URL = Platform.OS === 'android'
         ? API_URL.replace('localhost', '10.0.2.2')
         : API_URL;
 }
@@ -78,8 +78,8 @@ export const getNetworkErrorMessage = (error: any): string => {
  * Función para verificar si es un error de conexión
  */
 export const isNetworkError = (error: any): boolean => {
-    return !error.response || 
-           error.code === 'NETWORK_ERROR' || 
+    return !error.response ||
+           error.code === 'NETWORK_ERROR' ||
            error.message === 'Network Error' ||
            error.code === 'ECONNREFUSED' ||
            error.code === 'ECONNABORTED';
@@ -102,6 +102,10 @@ export const DITO_API_BASE_URL = getBaseUrl();
 console.log('🌐 API Base URL:', DITO_API_BASE_URL);
 console.log('📱 Platform:', Platform.OS);
 console.log('🏷️ Environment:', STAGE);
+console.log('🔑 Public Key:', PUBLIC_KEY ? `${PUBLIC_KEY.substring(0, 8)}...${PUBLIC_KEY.substring(PUBLIC_KEY.length - 8)}` : 'NOT SET');
+console.log('🔑 Public Key FULL LENGTH:', PUBLIC_KEY.length);
+console.log('🔑 Public Key FULL (be careful in production):', PUBLIC_KEY);
+console.log('⚙️ Original API_URL from config:', envConfig?.API_URL);
 
 /**
  * Instancia de Axios configurada para la API de Dito
@@ -128,11 +132,29 @@ ditoApi.interceptors.request.use(
     async (config: any) => {
         const token = await AsyncStorage.getItem('token');
 
-        if (token) {
+        // 🚫 NO enviar token en login requests
+        if (config.url?.includes('/auth/login')) {
+            console.log('🔐 LOGIN REQUEST: Not sending Authorization header');
+        } else if (token) {
             config.headers!['Authorization'] = `Bearer ${token}`;
+            console.log('🔍 FOUND STORED TOKEN:', token.substring(0, 20) + '...');
+        } else {
+            console.log('🔍 NO STORED TOKEN FOUND');
         }
 
         config.headers!['x-public-key'] = PUBLIC_KEY;
+
+        // 🔍 DEBUG: Log completo del request
+        console.log('🚀 Request Debug:', {
+            url: `${config.baseURL}${config.url}`,
+            method: config.method?.toUpperCase(),
+            headers: {
+                'Content-Type': config.headers['Content-Type'],
+                'x-public-key': config.headers['x-public-key'],
+                'Authorization': config.headers['Authorization'] ? 'Bearer [HIDDEN]' : 'Not set'
+            },
+            data: config.data
+        });
 
         return config;
     },
@@ -149,16 +171,16 @@ ditoApi.interceptors.response.use(
     },
     async (error: any) => {
         const originalRequest = error.config;
-        
+
         // ✅ Retry automático para errores de conexión
         if (isNetworkError(error) && !originalRequest._retry) {
             originalRequest._retry = true;
             const retryCount = originalRequest._retryCount || 0;
-            
+
             if (retryCount < MAX_RETRIES) {
                 originalRequest._retryCount = retryCount + 1;
                 console.log(`🔄 Retry attempt ${retryCount + 1}/${MAX_RETRIES} for ${originalRequest.method?.toUpperCase()} ${originalRequest.url}`);
-                
+
                 await delay(RETRY_DELAY * (retryCount + 1)); // Backoff exponencial
                 return ditoApi(originalRequest);
             } else {
