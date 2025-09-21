@@ -107,11 +107,11 @@ const handleUnauthorized = async () => {
                                 const success = await authStoreLet.extendSession();
 
                                 if (success) {
-                                    Alert.alert(
+                                   /*  Alert.alert(
                                         'Sesión Extendida',
                                         'Tu sesión ha sido extendida exitosamente. Puedes continuar usando la aplicación.',
                                         [{ text: 'OK' }]
-                                    );
+                                    ); */
                                     // ✅ NO navegar - mantener en pantalla actual
                                 } else {
                                     console.log('❌ Failed to extend session');
