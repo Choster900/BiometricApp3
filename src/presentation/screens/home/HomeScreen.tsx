@@ -1,158 +1,71 @@
 import React from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
+    View,
+    Text,
+    StyleSheet,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../navigation/StackNavigator';
 import { useAuthStore } from '../../store/auth/useAuthStore';
 
-
-
 type HomeScreenNavigationProp = StackNavigationProp<
-  RootStackParamList,
-  'MainTabs'
+    RootStackParamList,
+    'MainTabs'
 >;
 
 interface HomeScreenProps {
-  navigation: HomeScreenNavigationProp;
+    navigation: HomeScreenNavigationProp;
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
-  const { logout, user } = useAuthStore();
+    const { user } = useAuthStore();
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Cerrar Sesión',
-      '¿Estás seguro de que quieres cerrar sesión?',
-      [
-        {
-          text: 'Cancelar',
-          style: 'cancel',
-        },
-        {
-          text: 'Cerrar Sesión',
-          onPress: async () => {
-            await logout();
-            navigation.navigate('LoginScreen');
-          },
-        },
-      ]
+    return (
+        <View style={styles.container}>
+            <View style={styles.content}>
+                <View style={styles.welcomeSection}>
+                    <Text style={styles.greeting}>Hola</Text>
+                    {user?.fullName && (
+                        <Text style={styles.userName}>{user.fullName}</Text>
+                    )}
+                </View>
+
+                <Text style={styles.subtitle}>Bienvenido de vuelta</Text>
+            </View>
+        </View>
     );
-  };
-
-  return (
-    <View style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>¡Bienvenido{user?.fullName ? `, ${user.fullName}` : ''}!</Text>
-        <Text style={styles.subtitle}>Has iniciado sesión correctamente</Text>
-
-        {user?.email && (
-          <Text style={styles.userInfo}>Email: {user.email}</Text>
-        )}
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>🏠 Panel Principal</Text>
-          <Text style={styles.cardContent}>
-            Esta es tu pantalla principal. Aquí puedes agregar el contenido
-            principal de tu aplicación.
-          </Text>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>� Estadísticas</Text>
-          <Text style={styles.cardContent}>
-            Aquí puedes mostrar estadísticas, datos importantes o cualquier
-            información relevante para el usuario.
-          </Text>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>🎯 Acciones Rápidas</Text>
-          <Text style={styles.cardContent}>
-            Botones o acciones que el usuario pueda realizar desde la pantalla
-            principal de la aplicación.
-          </Text>
-        </View>
-
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 10,
-    color: '#333',
-  },
-  subtitle: {
-    fontSize: 18,
-    textAlign: 'center',
-    marginBottom: 20,
-    color: '#666',
-  },
-  userInfo: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 20,
-    color: '#007AFF',
-    fontWeight: '500',
-  },
-  card: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
+    container: {
+        flex: 1,
+        backgroundColor: '#ffffff',
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  cardTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
-  },
-  cardContent: {
-    fontSize: 16,
-    color: '#666',
-    lineHeight: 24,
-  },
-  logoutButton: {
-    backgroundColor: '#FF3B30',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  logoutButtonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
+    content: {
+        flex: 1,
+        paddingHorizontal: 24,
+        paddingTop: 60,
+    },
+    welcomeSection: {
+        marginBottom: 8,
+    },
+    greeting: {
+        fontSize: 28,
+        fontWeight: '300',
+        color: '#1a1a1a',
+        letterSpacing: 0.5,
+    },
+    userName: {
+        fontSize: 32,
+        fontWeight: '600',
+        color: '#1a1a1a',
+        marginTop: 4,
+    },
+    subtitle: {
+        fontSize: 16,
+        color: '#8e8e93',
+        fontWeight: '400',
+    },
 });
 
 export default HomeScreen;

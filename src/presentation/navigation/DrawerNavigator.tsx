@@ -87,13 +87,13 @@ export const DrawerNavigator = () => {
             screenOptions={{
                 headerShown: true,
                 headerStyle: {
-                    backgroundColor: '#007AFF',
+                    backgroundColor: '#000000ff',
                 },
                 headerTintColor: '#fff',
                 headerTitleStyle: {
                     fontWeight: 'bold',
                 },
-                drawerActiveTintColor: '#007AFF',
+                drawerActiveTintColor: '#000000ff',
                 drawerInactiveTintColor: '#666',
                 drawerStyle: {
                     backgroundColor: '#fff',
