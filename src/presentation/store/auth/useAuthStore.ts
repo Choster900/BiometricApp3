@@ -90,25 +90,30 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         const isBiometricEnabled = resp.user.foundDeviceToken?.biometricEnabled || false;
 
 
-        console.log("Device is active status:", resp.user.foundDeviceToken?.isActive);
-        if (!resp.user.foundDeviceToken.isActive) {
-            console.log("Device token is not active");
-            /*
+        console.log("PROBANDO:", resp.user);
 
-             set({
-                 status: 'unauthenticated',
-                 token: undefined,
-                 user: undefined,
-                 isBiometricEnabledInBackend: isBiometricEnabled,
-                 deviceToken: resp.user.foundDeviceToken?.deviceToken,
-                 deviceIsActive: resp.user.foundDeviceToken?.isActive
-             });
+        if (!resp.user.allowMultipleSessions) {
+            if (!resp.user.foundDeviceToken.isActive) {
+                console.log("Device token is not active");
 
-             return false; */
-            console.log("Device token is not active, trying to set as main device");
-        } else {
-            console.log("Device token is active");
+                /*   set({
+                      status: 'unauthenticated',
+                      token: undefined,
+                      user: undefined,
+                      isBiometricEnabledInBackend: isBiometricEnabled,
+                      deviceToken: resp.user.foundDeviceToken?.deviceToken,
+                      deviceIsActive: resp.user.foundDeviceToken?.isActive
+                  });
+
+                  return false; */
+
+                console.log("Device token is not active, trying to set as main device");
+                setMainDevice(resp.user.foundDeviceToken.deviceToken);
+            } else {
+                console.log("Device token is active");
+            }
         }
+
         set({
             status: 'authenticated',
             token: resp.token,
@@ -143,26 +148,30 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
             // Determinar si la biometría está habilitada en el backend
             const isBiometricEnabled = resp.user.foundDeviceToken?.biometricEnabled || false;
 
-            console.log("Device is active status:", resp.user.foundDeviceToken?.isActive);
-            if (!resp.user.foundDeviceToken.isActive) {
-                console.log("Device token is not active");
+            console.log("PROBANDO:", resp.user);
 
-                /*   set({
-                      status: 'unauthenticated',
-                      token: undefined,
-                      user: undefined,
-                      isBiometricEnabledInBackend: isBiometricEnabled,
-                      deviceToken: resp.user.foundDeviceToken?.deviceToken,
-                      deviceIsActive: resp.user.foundDeviceToken?.isActive
-                  });
+            if (!resp.user.allowMultipleSessions) {
+                if (!resp.user.foundDeviceToken.isActive) {
+                    console.log("Device token is not active");
 
-                  return false; */
+                    /*   set({
+                          status: 'unauthenticated',
+                          token: undefined,
+                          user: undefined,
+                          isBiometricEnabledInBackend: isBiometricEnabled,
+                          deviceToken: resp.user.foundDeviceToken?.deviceToken,
+                          deviceIsActive: resp.user.foundDeviceToken?.isActive
+                      });
 
-                console.log("Device token is not active, trying to set as main device");
-                setMainDevice(resp.user.foundDeviceToken.deviceToken);
-            } else {
-                console.log("Device token is active");
+                      return false; */
+
+                    console.log("Device token is not active, trying to set as main device");
+                    setMainDevice(resp.user.foundDeviceToken.deviceToken);
+                } else {
+                    console.log("Device token is active");
+                }
             }
+
 
             set({
                 status: 'authenticated',
