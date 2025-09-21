@@ -1,16 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   Alert,
-  Switch,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../navigation/StackNavigator';
 import { useAuthStore } from '../../store/auth/useAuthStore';
-import { useBiometricAuth } from '../../hooks/useBiometricAuth';
 
 
 
@@ -24,9 +22,7 @@ interface HomeScreenProps {
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
-  const { logout, user, toggleBiometrics, isBiometricEnabledInBackend } = useAuthStore();
-  const { capabilities, authenticateAsync, getBiometricTypeText } = useBiometricAuth();
-  const [isTogglingBiometric, setIsTogglingBiometric] = useState(false);
+  const { logout, user } = useAuthStore();
 
   const handleLogout = () => {
     Alert.alert(
@@ -48,89 +44,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     );
   };
 
-  const handleToggleBiometrics = async (enabled: boolean) => {
-    // 🔐 Primero solicitar autenticación biométrica para verificar identidad
-    if (capabilities.isAvailable) {
-      try {
-        const biometricResult = await authenticateAsync();
-
-        if (!biometricResult.success) {
-          Alert.alert(
-            'Autenticación requerida',
-            `Necesitas autenticarte con ${getBiometricTypeText().toLowerCase()} para cambiar esta configuración.`,
-            [
-              {
-                text: 'OK',
-                style: 'default'
-              }
-            ]
-          );
-          return; // No continuar si la autenticación biométrica falló
-        }
-      } catch (error) {
-        console.error('Error during biometric authentication:', error);
-        Alert.alert(
-          'Error de autenticación',
-          'No se pudo verificar tu identidad. Inténtalo de nuevo.'
-        );
-        return;
-      }
-    } else {
-      // Si no hay biometría disponible, mostrar un alert de confirmación adicional
-      const shouldContinue = await new Promise<boolean>((resolve) => {
-        Alert.alert(
-          'Confirmación requerida',
-          '¿Estás seguro de que quieres cambiar la configuración de seguridad?',
-          [
-            {
-              text: 'Cancelar',
-              style: 'cancel',
-              onPress: () => resolve(false)
-            },
-            {
-              text: 'Continuar',
-              style: 'default',
-              onPress: () => resolve(true)
-            }
-          ]
-        );
-      });
-
-      if (!shouldContinue) {
-        return;
-      }
-    }
-
-    // 🔄 Proceder con el cambio de configuración
-    setIsTogglingBiometric(true);
-
-    try {
-      const success = await toggleBiometrics(enabled);
-
-      if (success) {
-        Alert.alert(
-          'Éxito',
-          enabled
-            ? 'Autenticación biométrica activada correctamente'
-            : 'Autenticación biométrica desactivada correctamente'
-        );
-      } else {
-        Alert.alert(
-          'Error',
-          'No se pudo cambiar la configuración de biometría. Inténtalo de nuevo.'
-        );
-      }
-    } catch (error) {
-      console.error('Error toggling biometrics:', error);
-      Alert.alert(
-        'Error',
-        'Ocurrió un error al cambiar la configuración de biometría'
-      );
-    } finally {
-      setIsTogglingBiometric(false);
-    }
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.content}>
@@ -142,41 +55,27 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         )}
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Panel Principal</Text>
+          <Text style={styles.cardTitle}>🏠 Panel Principal</Text>
           <Text style={styles.cardContent}>
             Esta es tu pantalla principal. Aquí puedes agregar el contenido
             principal de tu aplicación.
           </Text>
         </View>
 
-        {/* Sección de Configuración de Biometría */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>🔐 Configuración de Seguridad</Text>
+          <Text style={styles.cardTitle}>� Estadísticas</Text>
+          <Text style={styles.cardContent}>
+            Aquí puedes mostrar estadísticas, datos importantes o cualquier
+            información relevante para el usuario.
+          </Text>
+        </View>
 
-          <View style={styles.switchContainer}>
-            <View style={styles.switchTextContainer}>
-              <Text style={styles.switchTitle}>Autenticación Biométrica</Text>
-              <Text style={styles.switchSubtitle}>
-                {isBiometricEnabledInBackend
-                  ? 'Puedes usar Face ID o huella dactilar para iniciar sesión'
-                  : 'Usa tu contraseña para iniciar sesión'
-                }
-              </Text>
-            </View>
-
-            <Switch
-              value={isBiometricEnabledInBackend || false}
-              onValueChange={handleToggleBiometrics}
-              disabled={isTogglingBiometric}
-              trackColor={{ false: '#ddd', true: '#34C759' }}
-              thumbColor={isBiometricEnabledInBackend ? '#fff' : '#f4f3f4'}
-              ios_backgroundColor="#ddd"
-            />
-          </View>
-
-          {isTogglingBiometric && (
-            <Text style={styles.loadingText}>Actualizando configuración...</Text>
-          )}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>🎯 Acciones Rápidas</Text>
+          <Text style={styles.cardContent}>
+            Botones o acciones que el usuario pueda realizar desde la pantalla
+            principal de la aplicación.
+          </Text>
         </View>
 
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -221,7 +120,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     padding: 20,
     borderRadius: 10,
-    marginBottom: 30,
+    marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -247,39 +146,12 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
+    marginTop: 10,
   },
   logoutButtonText: {
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
-  },
-  switchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 5,
-  },
-  switchTextContainer: {
-    flex: 1,
-    marginRight: 15,
-  },
-  switchTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
-  },
-  switchSubtitle: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 18,
-  },
-  loadingText: {
-    fontSize: 14,
-    color: '#007AFF',
-    textAlign: 'center',
-    marginTop: 10,
-    fontStyle: 'italic',
   },
 });
 

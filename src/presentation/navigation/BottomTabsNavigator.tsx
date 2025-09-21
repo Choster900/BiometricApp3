@@ -6,7 +6,7 @@ import Screen2 from '../screens/screen2/Screen2';
 
 export type BottomTabParamList = {
   Home: undefined;
-  Screen2: undefined;
+  Settings: undefined;
 };
 
 const Tab = createBottomTabNavigator<BottomTabParamList>();
@@ -20,8 +20,8 @@ export const BottomTabsNavigator = () => {
 
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Screen2') {
-            iconName = focused ? 'apps' : 'apps-outline';
+          } else if (route.name === 'Settings') {
+            iconName = focused ? 'settings' : 'settings-outline';
           } else {
             iconName = 'help-outline';
           }
@@ -45,18 +45,18 @@ export const BottomTabsNavigator = () => {
         },
       })}
     >
-      <Tab.Screen 
-        name="Home" 
-        component={HomeScreen} 
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
         options={{
           tabBarLabel: 'Inicio',
         }}
       />
-      <Tab.Screen 
-        name="Screen2" 
-        component={Screen2} 
+      <Tab.Screen
+        name="Settings"
+        component={Screen2}
         options={{
-          tabBarLabel: 'Pantalla 2',
+          tabBarLabel: 'Configuración',
         }}
       />
     </Tab.Navigator>
