@@ -1,227 +1,180 @@
 import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Image,
-  Linking,
-  TouchableOpacity,
-  Alert,
+    View,
+    Text,
+    StyleSheet,
+    ScrollView,
+    Linking,
+    TouchableOpacity,
+    Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const AboutUsScreen = () => {
-  const handleEmailPress = () => {
-    Linking.openURL('mailto:info@biometricapp.com');
-  };
+    const handleEmailPress = () => {
+        Linking.openURL('mailto:info@biometricapp.com');
+    };
 
-  const handleWebsitePress = () => {
-    Linking.openURL('https://www.biometricapp.com');
-  };
+    const handleWebsitePress = () => {
+        Linking.openURL('https://www.biometricapp.com');
+    };
 
-  const handlePrivacyPress = () => {
-    Alert.alert(
-      'Política de Privacidad',
-      'Esta aplicación utiliza tecnología biométrica para proporcionar una autenticación segura. Todos los datos biométricos se almacenan de forma local en su dispositivo y nunca se comparten con terceros.'
+    const handlePrivacyPress = () => {
+        Alert.alert(
+            'Política de Privacidad',
+            'Esta aplicación utiliza tecnología biométrica para proporcionar una autenticación segura. Todos los datos biométricos se almacenan de forma local en su dispositivo y nunca se comparten con terceros.'
+        );
+    };
+
+    return (
+        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+            <View style={styles.content}>
+                {/* Header */}
+                <View style={styles.header}>
+                    <View style={styles.logoContainer}>
+                        <Ionicons name="finger-print" size={60} color="#007AFF" />
+                    </View>
+                    <Text style={styles.title}>BiometricApp</Text>
+                    <Text style={styles.subtitle}>Autenticación Biométrica Segura</Text>
+                    <Text style={styles.version}>v1.0.0</Text>
+                </View>
+
+                {/* Descripción */}
+                <View style={styles.section}>
+                    <Text style={styles.description}>
+                        Una aplicación de demostración que utiliza tecnología de autenticación
+                        biométrica para proporcionar un acceso seguro y rápido. Desarrollada
+                        con React Native siguiendo las mejores prácticas en seguridad móvil.
+                    </Text>
+                </View>
+                {/* Contacto */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Contacto</Text>
+
+                    <TouchableOpacity style={styles.contactItem} onPress={handleEmailPress}>
+                        <Ionicons name="mail-outline" size={20} color="#8E8E93" />
+                        <Text style={styles.contactText}>info@biometricapp.com</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.contactItem} onPress={handleWebsitePress}>
+                        <Ionicons name="globe-outline" size={20} color="#8E8E93" />
+                        <Text style={styles.contactText}>www.biometricapp.com</Text>
+                    </TouchableOpacity>
+                </View>
+
+                {/* Footer */}
+                <Text style={styles.footer}>
+                    © 2024 BiometricApp. Todos los derechos reservados.
+                </Text>
+            </View>
+        </ScrollView>
     );
-  };
-
-  return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <View style={styles.header}>
-        <View style={styles.logoContainer}>
-          <Ionicons name="finger-print" size={80} color="#007AFF" />
-        </View>
-        <Text style={styles.title}>BiometricApp</Text>
-        <Text style={styles.subtitle}>Autenticación Biométrica Segura</Text>
-        <Text style={styles.version}>Versión 1.0.0</Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Acerca de la Aplicación</Text>
-        <Text style={styles.description}>
-          BiometricApp es una aplicación de demostración que utiliza tecnología de
-          autenticación biométrica para proporcionar un acceso seguro y rápido.
-          Desarrollada con React Native y Expo, esta aplicación demuestra las mejores
-          prácticas en seguridad móvil.
-        </Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Características</Text>
-        <View style={styles.featureList}>
-          <View style={styles.featureItem}>
-            <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-            <Text style={styles.featureText}>Autenticación biométrica (huella dactilar/Face ID)</Text>
-          </View>
-          <View style={styles.featureItem}>
-            <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-            <Text style={styles.featureText}>Interfaz de usuario intuitiva</Text>
-          </View>
-          <View style={styles.featureItem}>
-            <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-            <Text style={styles.featureText}>Seguridad de datos mejorada</Text>
-          </View>
-          <View style={styles.featureItem}>
-            <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-            <Text style={styles.featureText}>Navegación fluida con drawer y tabs</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Desarrollado por</Text>
-        <Text style={styles.developerText}>Equipo de Desarrollo BiometricApp</Text>
-        <Text style={styles.description}>
-          Un equipo especializado en desarrollo de aplicaciones móviles seguras
-          y tecnologías de autenticación avanzadas.
-        </Text>
-      </View>
-
-      <View style={styles.contactSection}>
-        <Text style={styles.sectionTitle}>Contacto</Text>
-
-        <TouchableOpacity style={styles.contactItem} onPress={handleEmailPress}>
-          <Ionicons name="mail" size={24} color="#007AFF" />
-          <Text style={styles.contactText}>info@biometricapp.com</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.contactItem} onPress={handleWebsitePress}>
-          <Ionicons name="globe" size={24} color="#007AFF" />
-          <Text style={styles.contactText}>www.biometricapp.com</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.contactItem} onPress={handlePrivacyPress}>
-          <Ionicons name="shield-checkmark" size={24} color="#007AFF" />
-          <Text style={styles.contactText}>Política de Privacidad</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>© 2024 BiometricApp. Todos los derechos reservados.</Text>
-      </View>
-    </ScrollView>
-  );
 };
 
+const FeatureItem = ({ text }: { text: string }) => (
+    <View style={styles.featureItem}>
+        <View style={styles.featureDot} />
+        <Text style={styles.featureText}>{text}</Text>
+    </View>
+);
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  contentContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  logoContainer: {
-    marginBottom: 15,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 5,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  version: {
-    fontSize: 14,
-    color: '#999',
-    fontStyle: 'italic',
-  },
-  section: {
-    marginBottom: 25,
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
+    container: {
+        flex: 1,
+        backgroundColor: '#ffffff',
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
-  },
-  description: {
-    fontSize: 16,
-    color: '#555',
-    lineHeight: 24,
-    textAlign: 'justify',
-  },
-  featureList: {
-    marginTop: 10,
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  featureText: {
-    fontSize: 16,
-    color: '#555',
-    marginLeft: 10,
-    flex: 1,
-  },
-  developerText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#007AFF',
-    marginBottom: 10,
-  },
-  contactSection: {
-    marginBottom: 25,
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
+    content: {
+        paddingHorizontal: 24,
+        paddingTop: 40,
+        paddingBottom: 60,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  contactItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  contactText: {
-    fontSize: 16,
-    color: '#007AFF',
-    marginLeft: 15,
-  },
-  footer: {
-    alignItems: 'center',
-    marginTop: 20,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-  },
-  footerText: {
-    fontSize: 14,
-    color: '#999',
-    textAlign: 'center',
-  },
+    header: {
+        alignItems: 'center',
+        marginBottom: 48,
+    },
+    logoContainer: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: '#F2F2F7',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 24,
+    },
+    title: {
+        fontSize: 32,
+        fontWeight: '700',
+        color: '#1D1D1F',
+        marginBottom: 8,
+        letterSpacing: -0.5,
+    },
+    subtitle: {
+        fontSize: 17,
+        color: '#8E8E93',
+        textAlign: 'center',
+        marginBottom: 12,
+        fontWeight: '500',
+    },
+    version: {
+        fontSize: 14,
+        color: '#C7C7CC',
+        fontWeight: '500',
+    },
+    section: {
+        marginBottom: 40,
+    },
+    sectionTitle: {
+        fontSize: 22,
+        fontWeight: '600',
+        color: '#1D1D1F',
+        marginBottom: 20,
+        letterSpacing: -0.3,
+    },
+    description: {
+        fontSize: 17,
+        color: '#3A3A3C',
+        lineHeight: 24,
+        fontWeight: '400',
+    },
+    featureList: {
+        gap: 16,
+    },
+    featureItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    featureDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: '#007AFF',
+        marginRight: 16,
+    },
+    featureText: {
+        fontSize: 17,
+        color: '#3A3A3C',
+        fontWeight: '400',
+    },
+    contactItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 16,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: '#E5E5EA',
+    },
+    contactText: {
+        fontSize: 17,
+        color: '#007AFF',
+        marginLeft: 16,
+        fontWeight: '500',
+    },
+    footer: {
+        fontSize: 14,
+        color: '#8E8E93',
+        textAlign: 'center',
+        marginTop: 32,
+        fontWeight: '400',
+    },
 });
 
 export default AboutUsScreen;
