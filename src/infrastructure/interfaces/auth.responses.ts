@@ -18,3 +18,15 @@ export interface FoundDeviceToken {
     biometricEnabled: boolean;
     message:          string;
 }
+
+export interface RegisterResponse {
+    message: string;
+    jobId: string;
+    status: string;
+    estimatedProcessingTime: string;
+    note: string;
+}
+
+export interface JobStatusResponse extends LoginResponse {
+    jobStatus: 'pending' | 'completed' | 'failed';
+}

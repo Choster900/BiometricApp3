@@ -80,6 +80,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
     try {
       const success = await register(formData.email, formData.password, formData.fullName);
 
+      console.log(success)
       if (success) {
         Alert.alert(
           '¡Registro Exitoso!',
@@ -87,7 +88,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
           [
             {
               text: 'Continuar',
-              onPress: () => navigation.navigate('MainTabs'),
+              onPress: () => navigation.navigate('LoginScreen'),
             },
           ]
         );

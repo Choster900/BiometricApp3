@@ -1,6 +1,6 @@
 import { ditoApi } from "../../config/ditoApi";
 import { User } from "../../domain/entities/user";
-import { LoginResponse } from "../../infrastructure/interfaces/auth.responses";
+import { LoginResponse, RegisterResponse, JobStatusResponse } from "../../infrastructure/interfaces/auth.responses";
 
 
 const returnUserToken = (data: LoginResponse) => {
@@ -47,21 +47,20 @@ export const authLogin = async (email: string, password: string, deviceToken?: s
     }
 };
 
-export const authRegister = async (email: string, password: string, fullName: string): Promise<{ user: User, token: string, refreshToken: string } | null> => {
+export const authRegister = async (email: string, password: string, fullName: string): Promise<boolean> => {
     email = email.toLowerCase().trim();
     try {
-        const { data } = await ditoApi.post<LoginResponse>('/auth/register', {
+        await ditoApi.post<RegisterResponse>('/auth/register', {
             email,
             password,
             fullName
         });
-        const result = returnUserToken(data);
 
-        return result;
+        return true;
     } catch (error: any) {
         if (error.response?.status === 400 || error.response?.status === 401 || error.response?.status === 403) {
             console.log('Register auth error (silent)');
-            return null;
+            return false;
         }
 
         let message = 'Ocurrió un error al registrar la cuenta.';
