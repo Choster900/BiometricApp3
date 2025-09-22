@@ -91,7 +91,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         const isBiometricEnabled = resp.user.foundDeviceToken?.biometricEnabled || false;
 
 
-        console.log("PROBANDO:", resp.user);
+        console.log("PROBANDO:", isBiometricEnabled);
+       // await StorageAdapter.setItem('biometricEnabled', resp.user.foundDeviceToken.biometricEnabled.toString());
 
         if (!resp.user.allowMultipleSessions) {
             if (resp.user.foundDeviceToken && !resp.user.foundDeviceToken.isActive) {
