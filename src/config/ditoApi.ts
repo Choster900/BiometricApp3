@@ -3,6 +3,7 @@ import { Alert, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { EnvConfig } from '../types/env';
+import { StorageAdapter } from './adapters/async-storage';
 
 // Importar navigation service y store para manejar redirects
 let navigationRef: any = null;
@@ -116,11 +117,11 @@ const handleUnauthorized = async () => {
                                 const success = await authStoreLet.extendSession();
 
                                 if (success) {
-                                   /*  Alert.alert(
-                                        'Sesión Extendida',
-                                        'Tu sesión ha sido extendida exitosamente. Puedes continuar usando la aplicación.',
-                                        [{ text: 'OK' }]
-                                    ); */
+                                    /*  Alert.alert(
+                                         'Sesión Extendida',
+                                         'Tu sesión ha sido extendida exitosamente. Puedes continuar usando la aplicación.',
+                                         [{ text: 'OK' }]
+                                     ); */
                                     // ✅ NO navegar - mantener en pantalla actual
                                 } else {
                                     console.log('❌ Failed to extend session');
@@ -432,7 +433,12 @@ ditoApi.interceptors.response.use(
                 authStore.markSessionExpired();
             }
 
-            await handleUnauthorized();
+            const storedToken = await StorageAdapter.getItem('token');
+
+            if (storedToken) {
+                await handleUnauthorized();
+            }
+
 
             // Log del error 401 para debugging
             console.log('🔐 Error 401 details:', {

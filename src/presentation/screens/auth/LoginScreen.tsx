@@ -51,11 +51,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             if (success) {
                 navigation.navigate('MainTabs');
             } else {
-                Alert.alert('Error', 'Credenciales incorrectas');
+               // Alert.alert('Error', 'Credenciales incorrectas');
             }
         } catch (error) {
             console.error('Login error:', error);
-            Alert.alert('Error', 'Ocurrió un error al iniciar sesión');
+          // Alert.alert('Error', 'Ocurrió un error al iniciar sesión');
         } finally {
             setIsLoading(false);
         }
@@ -99,6 +99,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                     onPress: async () => {
                         try {
                             await removeStorageItem('deviceToken');
+                            await removeStorageItem('isBiometricEnabled');
                             Alert.alert('Éxito', 'Almacenamiento limpiado');
                         } catch (error) {
                             console.error('Error removing storage:', error);

@@ -94,7 +94,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         console.log("PROBANDO:", resp.user);
 
         if (!resp.user.allowMultipleSessions) {
-            if (!resp.user.foundDeviceToken.isActive) {
+            if (resp.user.foundDeviceToken && !resp.user.foundDeviceToken.isActive) {
                 console.log("Device token is not active");
 
                 /*   set({

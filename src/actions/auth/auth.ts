@@ -1,6 +1,8 @@
 import { ditoApi } from "../../config/ditoApi";
 import { User } from "../../domain/entities/user";
 import { LoginResponse, RegisterResponse, JobStatusResponse } from "../../infrastructure/interfaces/auth.responses";
+import { useErrorStore } from "../../presentation/store/error/useErrorStore";
+import { extractErrorMessage, shouldShowError, getErrorType } from "../../utils/errorUtils";
 
 
 const returnUserToken = (data: LoginResponse) => {
@@ -31,19 +33,23 @@ export const authLogin = async (email: string, password: string, deviceToken?: s
 
         return result;
     } catch (error: any) {
+        // Extraer mensaje de error
+        const errorMessage = extractErrorMessage(error);
+        const errorStore = useErrorStore.getState();
+        
+        // Manejar errores específicos que queremos mostrar al usuario
         if (error.response?.status === 400 || error.response?.status === 401 || error.response?.status === 403) {
-            console.log('Login auth error (silent)');
+            // Mostrar mensaje específico para estos errores
+            errorStore.showError(errorMessage, 'warning');
+            console.log('Login auth error (showing to user)');
             return null;
         }
 
-        let message = 'Ocurrió un error al iniciar sesión.';
-        if (error.response?.data?.message) {
-            message = error.response.data.message;
-        } else if (error.message) {
-            message = error.message;
-        }
-        console.error('Login error:', message, error);
-        throw new Error(message);
+        // Para otros errores, mostrar y lanzar excepción
+        const errorType = getErrorType(error);
+        errorStore.showError(errorMessage, errorType);
+        console.error('Login error:', errorMessage, error);
+        throw new Error(errorMessage);
     }
 };
 
@@ -56,21 +62,21 @@ export const authRegister = async (email: string, password: string, fullName: st
             fullName
         });
 
+        // Mostrar mensaje de éxito
+        const errorStore = useErrorStore.getState();
+        errorStore.showError('¡Cuenta creada exitosamente! Ahora puedes iniciar sesión.', 'success');
+
         return true;
     } catch (error: any) {
-        if (error.response?.status === 400 || error.response?.status === 401 || error.response?.status === 403) {
-            console.log('Register auth error (silent)');
-            return false;
-        }
+        // Extraer mensaje de error
+        const errorMessage = extractErrorMessage(error);
+        const errorStore = useErrorStore.getState();
+        
+        // Mostrar error al usuario (todos los errores de registro son relevantes)
+        errorStore.showError(errorMessage, 'warning');
 
-        let message = 'Ocurrió un error al registrar la cuenta.';
-        if (error.response?.data?.message) {
-            message = error.response.data.message;
-        } else if (error.message) {
-            message = error.message;
-        }
-        console.error('Register error:', message, error);
-        throw new Error(message);
+        console.log('Register error (showing to user):', errorMessage);
+        return false;
     }
 };
 

@@ -59,24 +59,24 @@ const Screen2 = () => {
             const success = await toggleBiometrics(enabled);
 
             if (success) {
-                Alert.alert(
+                /* Alert.alert(
                     'Éxito',
                     enabled
                         ? 'Autenticación biométrica activada correctamente'
                         : 'Autenticación biométrica desactivada correctamente'
-                );
+                ); */
             } else {
-                Alert.alert(
+               /*  Alert.alert(
                     'Error',
                     'No se pudo cambiar la configuración de biometría. Inténtalo de nuevo.'
-                );
+                ); */
             }
         } catch (error) {
             console.error('Error toggling biometrics:', error);
-            Alert.alert(
+           /*  Alert.alert(
                 'Error',
                 'Ocurrió un error al cambiar la configuración de biometría'
-            );
+            ); */
         } finally {
             setIsTogglingBiometric(false);
         }

@@ -35,10 +35,10 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const validateForm = () => {
-    const newErrors: {[key: string]: string} = {};
+    const newErrors: { [key: string]: string } = {};
 
     // Validar email
     if (!formData.email.trim()) {
@@ -82,7 +82,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
 
       console.log(success)
       if (success) {
-        Alert.alert(
+        /* Alert.alert(
           '¡Registro Exitoso!',
           'Tu cuenta ha sido creada correctamente. Bienvenido a BiometricApp.',
           [
@@ -91,21 +91,22 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
               onPress: () => navigation.navigate('LoginScreen'),
             },
           ]
-        );
+        ); */
+        navigation.navigate('LoginScreen');
       } else {
-        Alert.alert(
+        /* Alert.alert(
           'Error de Registro',
           'No se pudo crear tu cuenta. Es posible que el email ya esté en uso o haya ocurrido un error del servidor.',
           [{ text: 'OK' }]
-        );
+        ); */
       }
     } catch (error: any) {
       console.error('Registration error:', error);
-      Alert.alert(
+      /* Alert.alert(
         'Error de Registro',
         error.message || 'Ocurrió un error inesperado durante el registro.',
         [{ text: 'OK' }]
-      );
+      ); */
     }
   };
 

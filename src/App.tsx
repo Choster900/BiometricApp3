@@ -6,6 +6,7 @@ import { AuthProvider } from './presentation/providers/AuthProvider';
 import { useAuthStore } from './presentation/store/auth/useAuthStore';
 import { useNetworkStore } from './presentation/store/network/useNetworkStore';
 import { NetworkAlert } from './presentation/components/NetworkAlert';
+import { ErrorAlert } from './presentation/components/ErrorAlert';
 import { setNetworkStore } from './config/ditoApi';
 
 export type RootStackParamList = {
@@ -71,6 +72,7 @@ export default function App() {
                 </AuthProvider>
             </NavigationContainer>
             <NetworkAlert />
+            <ErrorAlert />
         </>
     );
 }
