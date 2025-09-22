@@ -95,7 +95,7 @@ export const authValidateToken = async (deviceToken: string): Promise<{ user: Us
         } else if (error.message) {
             message = error.message;
         }
-        console.error('Token validation error:', message, error);
+        //console.error('Token validation error:', message, error);
         return null;
     }
 };

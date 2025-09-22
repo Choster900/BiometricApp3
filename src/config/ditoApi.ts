@@ -7,6 +7,7 @@ import { EnvConfig } from '../types/env';
 // Importar navigation service y store para manejar redirects
 let navigationRef: any = null;
 let authStoreLet: any = null; // ✅ Referencia al store de auth
+let networkStore: any = null; // ✅ Referencia al store de red
 
 /**
  * Función para establecer la referencia de navegación
@@ -22,6 +23,14 @@ const setNavigationRef = (ref: any) => {
  */
 const setAuthStore = (store: any) => {
     authStoreLet = store;
+};
+
+/**
+ * Función para establecer la referencia del store de red
+ * Permite mostrar alertas de conexión
+ */
+const setNetworkStore = (store: any) => {
+    networkStore = store;
 };
 
 
@@ -289,7 +298,7 @@ const ditoApi = axios.create({
     headers: {
         'Content-Type': 'application/json',
     },
-    timeout: 10000, // 10 segundos timeout
+    timeout: 1000, // 1 segundo timeout
 });
 
 // Configuración para retry automático
@@ -364,6 +373,19 @@ ditoApi.interceptors.response.use(
 
         // ✅ Errores de conexión/red
         if (!error.response) {
+            // Mostrar alerta de red cuando hay problemas de conexión
+            if (networkStore && networkStore.setConnectionStatus) {
+                if (error.code === 'ECONNABORTED') {
+                    networkStore.setConnectionStatus(false, 'Conexión lenta o tiempo de espera agotado');
+                } else if (error.code === 'NETWORK_ERROR' || error.message === 'Network Error') {
+                    networkStore.setConnectionStatus(false, 'Sin conexión a internet');
+                } else if (error.code === 'ECONNREFUSED') {
+                    networkStore.setConnectionStatus(false, 'Servidor no disponible');
+                } else {
+                    networkStore.setConnectionStatus(false, 'Error de conexión');
+                }
+            }
+
             // Sin respuesta del servidor - problemas de conexión
             if (error.code === 'ECONNABORTED') {
                 console.error('⏰ Request Timeout:', {
@@ -395,6 +417,11 @@ ditoApi.interceptors.response.use(
                 });
             }
             return Promise.reject(error);
+        }
+
+        // Restaurar conexión cuando hay respuesta del servidor
+        if (networkStore && networkStore.setConnectionStatus && error.response) {
+            networkStore.setConnectionStatus(true);
         }
 
         // ✅ Manejar error 401 - marcar sesión expirada y mostrar opciones
@@ -452,4 +479,4 @@ ditoApi.interceptors.response.use(
     }
 );
 
-export { ditoApi, setAuthStore, setNavigationRef };
+export { ditoApi, setAuthStore, setNavigationRef, setNetworkStore };

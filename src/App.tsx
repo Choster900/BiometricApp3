@@ -1,9 +1,12 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StackNavigator } from './presentation/navigation/StackNavigator';
 import { AuthProvider } from './presentation/providers/AuthProvider';
 import { useAuthStore } from './presentation/store/auth/useAuthStore';
+import { useNetworkStore } from './presentation/store/network/useNetworkStore';
+import { NetworkAlert } from './presentation/components/NetworkAlert';
+import { setNetworkStore } from './config/ditoApi';
 
 export type RootStackParamList = {
     Login: undefined;
@@ -21,6 +24,12 @@ export default function App() {
     const lastCheckTime = useRef<number>(0);
     const checkDebounceTimeout = useRef<number | null>(null);
     const DEBOUNCE_DELAY = 2000;
+
+    // Configurar network store en ditoApi
+    useEffect(() => {
+        const networkStore = useNetworkStore.getState();
+        setNetworkStore(networkStore);
+    }, []);
 
 
     // Función para manejar cambios de navegación
@@ -52,13 +61,16 @@ export default function App() {
     }
 
     return (
-        <NavigationContainer
-            ref={navigationRef}
-            onStateChange={handleNavigationStateChange}
-        >
-            <AuthProvider>
-                <StackNavigator />
-            </AuthProvider>
-        </NavigationContainer>
+        <>
+            <NavigationContainer
+                ref={navigationRef}
+                onStateChange={handleNavigationStateChange}
+            >
+                <AuthProvider>
+                    <StackNavigator />
+                </AuthProvider>
+            </NavigationContainer>
+            <NetworkAlert />
+        </>
     );
 }
