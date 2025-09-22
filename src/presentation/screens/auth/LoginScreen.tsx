@@ -176,7 +176,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             </View>
 
             {/* Footer con opciones de desarrollo (oculto en producción) */}
-            {__DEV__ && (
+          {/*   {__DEV__ && ( */}
                 <View style={styles.devOptions}>
                     <TouchableOpacity
                         style={styles.devButton}
@@ -192,7 +192,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
                     </Text>
                 </View>
-            )}
+           {/*  )} */}
         </View>
     );
 };

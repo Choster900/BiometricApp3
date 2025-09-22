@@ -4,7 +4,7 @@ export default {
   expo: {
     name: "BiometricApp3",
     slug: "BiometricApp3",
-    version: "1.0.0",
+    version: process.env.APP_VERSION || "1.0.0",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
@@ -29,6 +29,7 @@ export default {
       supportsTablet: true
     },
     android: {
+      package: "com.choster.BiometricApp3",
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#ffffff"
