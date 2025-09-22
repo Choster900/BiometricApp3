@@ -47,6 +47,34 @@ export const authLogin = async (email: string, password: string, deviceToken?: s
     }
 };
 
+export const authRegister = async (email: string, password: string, fullName: string): Promise<{ user: User, token: string, refreshToken: string } | null> => {
+    email = email.toLowerCase().trim();
+    try {
+        const { data } = await ditoApi.post<LoginResponse>('/auth/register', {
+            email,
+            password,
+            fullName
+        });
+        const result = returnUserToken(data);
+
+        return result;
+    } catch (error: any) {
+        if (error.response?.status === 400 || error.response?.status === 401 || error.response?.status === 403) {
+            console.log('Register auth error (silent)');
+            return null;
+        }
+
+        let message = 'Ocurrió un error al registrar la cuenta.';
+        if (error.response?.data?.message) {
+            message = error.response.data.message;
+        } else if (error.message) {
+            message = error.message;
+        }
+        console.error('Register error:', message, error);
+        throw new Error(message);
+    }
+};
+
 
 export const authValidateToken = async (deviceToken: string): Promise<{ user: User, token: string, refreshToken: string } | null> => {
     try {

@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { User } from "../../../domain/entities/user";
 import { AuthStatus } from "../../../infrastructure/interfaces/auth.status";
 import { StorageAdapter } from "../../../config/adapters/async-storage";
-import { authLogin, authLoginWithDeviceToken, authValidateToken, setMainDevice } from "../../../actions/auth/auth";
+import { authLogin, authLoginWithDeviceToken, authValidateToken, setMainDevice, authRegister } from "../../../actions/auth/auth";
 import { generateDeviceToken, saveDeviceToken, toggleBiometrics } from "../../../actions/security/security";
 
 
@@ -16,6 +16,7 @@ export interface AuthState {
     deviceIsActive?: boolean;
 
     login: (email: string, password: string) => Promise<boolean>;
+    register: (email: string, password: string, fullName: string) => Promise<boolean>;
     loginWithBiometrics: () => Promise<boolean>;
     logout: () => void;
     checkStatus: () => Promise<boolean>;
@@ -124,6 +125,58 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
         return true;
 
+    },
+
+    register: async (email: string, password: string, fullName: string) => {
+        try {
+            set({ status: 'checking' });
+
+            const resp = await authRegister(email, password, fullName);
+
+            if (!resp) {
+                set({ status: 'unauthenticated', token: undefined, user: undefined, refreshToken: undefined });
+                return false;
+            }
+
+            // Después del registro exitoso, guardamos los tokens
+            await StorageAdapter.setItem('token', resp.token);
+            await StorageAdapter.setItem('refreshToken', resp.refreshToken);
+
+            // Generar device token para el nuevo usuario
+            const response = await generateDeviceToken();
+            if (!response || !response.deviceToken) {
+                console.error("Failed to generate device token during registration");
+                set({ status: 'unauthenticated', token: undefined, user: undefined, refreshToken: undefined });
+                return false;
+            }
+
+            const deviceToken = response.deviceToken.trim();
+            if (!deviceToken) {
+                console.error("Failed to generate device token during registration");
+                set({ status: 'unauthenticated', token: undefined, user: undefined, refreshToken: undefined });
+                return false;
+            }
+
+            await StorageAdapter.setItem('deviceToken', deviceToken);
+            await saveDeviceToken(deviceToken);
+
+            // Establecer el estado como autenticado
+            set({
+                status: 'authenticated',
+                token: resp.token,
+                user: resp.user,
+                refreshToken: resp.refreshToken,
+                isBiometricEnabledInBackend: false, // Por defecto disabled para nuevos usuarios
+                deviceToken: deviceToken
+            });
+
+            return true;
+
+        } catch (error) {
+            console.error('Registration error:', error);
+            set({ status: 'unauthenticated', token: undefined, user: undefined, refreshToken: undefined });
+            return false;
+        }
     },
 
     loginWithBiometrics: async () => {

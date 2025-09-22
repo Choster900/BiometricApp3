@@ -1,6 +1,7 @@
 
 import { createStackNavigator, StackCardStyleInterpolator } from '@react-navigation/stack';
 import LoginScreen from '../screens/auth/LoginScreen';
+import RegisterScreen from '../screens/auth/RegisterScreen';
 import { DrawerNavigator } from './DrawerNavigator';
 import { LoadingScreen } from '../screens/loading/LoadingScree';
 
@@ -8,7 +9,7 @@ export type RootStackParamList = {
     LoadingScreen: undefined;
     MainTabs: undefined;
     LoginScreen: undefined;
-    //RegisterScreen: undefined;
+    RegisterScreen: undefined;
     //LoadingScreen: undefined;
 };
 
@@ -31,6 +32,7 @@ export const StackNavigator = () => {
 
             <Stack.Screen name="LoadingScreen" component={LoadingScreen} />
             <Stack.Screen name="LoginScreen" component={LoginScreen} />
+            <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
             <Stack.Screen name="MainTabs" component={DrawerNavigator} />
         </Stack.Navigator>
     )

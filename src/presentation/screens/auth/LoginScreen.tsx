@@ -164,6 +164,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                         </Text>
                     </TouchableOpacity>
                 )}
+
+                {/* Enlace de registro */}
+                <View style={styles.registerLinkContainer}>
+                    <Text style={styles.registerLinkText}>¿No tienes una cuenta? </Text>
+                    <TouchableOpacity onPress={() => navigation.navigate('RegisterScreen')}>
+                        <Text style={styles.registerLink}>Regístrate</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
 
             {/* Footer con opciones de desarrollo (oculto en producción) */}
@@ -250,6 +258,21 @@ const styles = StyleSheet.create({
     },
     buttonDisabled: {
         opacity: 0.5,
+    },
+    registerLinkContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        marginTop: 24,
+        marginBottom: 16,
+    },
+    registerLinkText: {
+        fontSize: 16,
+        color: '#6B7280',
+    },
+    registerLink: {
+        fontSize: 16,
+        color: '#3B82F6',
+        fontWeight: '600',
     },
     devOptions: {
         position: 'absolute',
