@@ -110,6 +110,9 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
                 console.log("Device token is not active, trying to set as main device");
                 setMainDevice(resp.user.foundDeviceToken.deviceToken);
+
+                alert("Este dispositivo será activado como dispositivo principal para esta cuenta.");
+
             } else {
                 console.log("Device token is active");
             }

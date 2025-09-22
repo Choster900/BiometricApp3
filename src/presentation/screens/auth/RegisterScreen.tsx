@@ -82,37 +82,15 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
 
       console.log(success)
       if (success) {
-        /* Alert.alert(
-          '¡Registro Exitoso!',
-          'Tu cuenta ha sido creada correctamente. Bienvenido a BiometricApp.',
-          [
-            {
-              text: 'Continuar',
-              onPress: () => navigation.navigate('LoginScreen'),
-            },
-          ]
-        ); */
         navigation.navigate('LoginScreen');
-      } else {
-        /* Alert.alert(
-          'Error de Registro',
-          'No se pudo crear tu cuenta. Es posible que el email ya esté en uso o haya ocurrido un error del servidor.',
-          [{ text: 'OK' }]
-        ); */
       }
     } catch (error: any) {
       console.error('Registration error:', error);
-      /* Alert.alert(
-        'Error de Registro',
-        error.message || 'Ocurrió un error inesperado durante el registro.',
-        [{ text: 'OK' }]
-      ); */
     }
   };
 
   const updateFormData = (field: keyof typeof formData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    // Limpiar error del campo cuando el usuario empiece a escribir
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
@@ -128,68 +106,59 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
+        {/* Header minimalista */}
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name="arrow-back" size={24} color="#007AFF" />
+            <Ionicons name="arrow-back" size={24} color="#1F2937" />
           </TouchableOpacity>
-          <View style={styles.logoContainer}>
-            <Ionicons name="person-add" size={80} color="#007AFF" />
-          </View>
-          <Text style={styles.title}>Crear Cuenta</Text>
-          <Text style={styles.subtitle}>Únete a BiometricApp</Text>
+          <Text style={styles.title}>Crear cuenta</Text>
+          <Text style={styles.subtitle}>Completa la información</Text>
         </View>
 
+        {/* Formulario */}
         <View style={styles.form}>
-          {/* Campo de Nombre Completo */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Nombre Completo</Text>
-            <View style={[styles.inputWrapper, errors.fullName && styles.inputError]}>
-              <Ionicons name="person" size={20} color="#666" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="Ingresa tu nombre completo"
-                placeholderTextColor="#999"
-                value={formData.fullName}
-                onChangeText={(text) => updateFormData('fullName', text)}
-                autoCapitalize="words"
-                autoCorrect={false}
-              />
-            </View>
-            {errors.fullName ? <Text style={styles.errorText}>{errors.fullName}</Text> : null}
+          {/* Nombre completo */}
+          <View style={styles.inputGroup}>
+            <TextInput
+              style={[styles.input, errors.fullName && styles.inputError]}
+              placeholder="Nombre completo"
+              placeholderTextColor="#9CA3AF"
+              value={formData.fullName}
+              onChangeText={(text) => updateFormData('fullName', text)}
+              autoCapitalize="words"
+              autoCorrect={false}
+            />
+            {errors.fullName && <Text style={styles.errorText}>{errors.fullName}</Text>}
           </View>
 
-          {/* Campo de Email */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email</Text>
-            <View style={[styles.inputWrapper, errors.email && styles.inputError]}>
-              <Ionicons name="mail" size={20} color="#666" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="ejemplo@correo.com"
-                placeholderTextColor="#999"
-                value={formData.email}
-                onChangeText={(text) => updateFormData('email', text)}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-            </View>
-            {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
+          {/* Email */}
+          <View style={styles.inputGroup}>
+            <TextInput
+              style={[styles.input, errors.email && styles.inputError]}
+              placeholder="Correo electrónico"
+              placeholderTextColor="#9CA3AF"
+              value={formData.email}
+              onChangeText={(text) => updateFormData('email', text)}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
           </View>
 
-          {/* Campo de Contraseña */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Contraseña</Text>
-            <View style={[styles.inputWrapper, errors.password && styles.inputError]}>
-              <Ionicons name="lock-closed" size={20} color="#666" style={styles.inputIcon} />
+          {/* Contraseña */}
+          <View style={styles.inputGroup}>
+            <View style={styles.passwordContainer}>
               <TextInput
-                style={styles.input}
-                placeholder="Mínimo 6 caracteres"
-                placeholderTextColor="#999"
+                style={[styles.input, styles.passwordInput, errors.password && styles.inputError]}
+                placeholder="Contraseña (mín. 6 caracteres)"
+                placeholderTextColor="#9CA3AF"
                 value={formData.password}
                 onChangeText={(text) => updateFormData('password', text)}
                 secureTextEntry={!showPassword}
@@ -199,26 +168,25 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
               <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
                 style={styles.eyeButton}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
                 <Ionicons
-                  name={showPassword ? "eye-off" : "eye"}
+                  name={showPassword ? "eye-off-outline" : "eye-outline"}
                   size={20}
-                  color="#666"
+                  color="#6B7280"
                 />
               </TouchableOpacity>
             </View>
-            {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
+            {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
           </View>
 
-          {/* Campo de Confirmar Contraseña */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Confirmar Contraseña</Text>
-            <View style={[styles.inputWrapper, errors.confirmPassword && styles.inputError]}>
-              <Ionicons name="lock-closed" size={20} color="#666" style={styles.inputIcon} />
+          {/* Confirmar contraseña */}
+          <View style={styles.inputGroup}>
+            <View style={styles.passwordContainer}>
               <TextInput
-                style={styles.input}
-                placeholder="Repite tu contraseña"
-                placeholderTextColor="#999"
+                style={[styles.input, styles.passwordInput, errors.confirmPassword && styles.inputError]}
+                placeholder="Confirmar contraseña"
+                placeholderTextColor="#9CA3AF"
                 value={formData.confirmPassword}
                 onChangeText={(text) => updateFormData('confirmPassword', text)}
                 secureTextEntry={!showConfirmPassword}
@@ -228,37 +196,40 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
               <TouchableOpacity
                 onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                 style={styles.eyeButton}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
                 <Ionicons
-                  name={showConfirmPassword ? "eye-off" : "eye"}
+                  name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
                   size={20}
-                  color="#666"
+                  color="#6B7280"
                 />
               </TouchableOpacity>
             </View>
-            {errors.confirmPassword ? <Text style={styles.errorText}>{errors.confirmPassword}</Text> : null}
+            {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
           </View>
 
-          {/* Botón de Registro */}
+          {/* Botón de registro */}
           <TouchableOpacity
             style={[styles.registerButton, isLoading && styles.buttonDisabled]}
             onPress={handleRegister}
             disabled={isLoading}
           >
             {isLoading ? (
-              <ActivityIndicator color="#fff" size="small" />
+              <ActivityIndicator color="#FFFFFF" size="small" />
             ) : (
-              <Text style={styles.registerButtonText}>Crear Cuenta</Text>
+              <Text style={styles.registerButtonText}>Crear cuenta</Text>
             )}
           </TouchableOpacity>
 
-          {/* Enlace para ir al Login */}
-          <View style={styles.loginLinkContainer}>
-            <Text style={styles.loginLinkText}>¿Ya tienes una cuenta? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('LoginScreen')}>
-              <Text style={styles.loginLink}>Inicia Sesión</Text>
-            </TouchableOpacity>
-          </View>
+          {/* Link a login */}
+          <TouchableOpacity
+            style={styles.loginLink}
+            onPress={() => navigation.navigate('LoginScreen')}
+          >
+            <Text style={styles.loginLinkText}>
+              ¿Ya tienes cuenta? <Text style={styles.loginLinkHighlight}>Iniciar sesión</Text>
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -268,119 +239,97 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#FFFFFF',
   },
   scrollContainer: {
     flexGrow: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 32,
   },
   header: {
-    alignItems: 'center',
-    marginTop: 60,
-    marginBottom: 40,
+    paddingTop: 60,
+    paddingBottom: 40,
   },
   backButton: {
-    position: 'absolute',
-    top: -20,
-    left: 0,
-    padding: 10,
-  },
-  logoContainer: {
-    marginBottom: 20,
+    alignSelf: 'flex-start',
+    marginBottom: 24,
   },
   title: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: '300',
+    color: '#1F2937',
     marginBottom: 8,
+    letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
+    color: '#6B7280',
+    fontWeight: '400',
   },
   form: {
     flex: 1,
+    gap: 20,
   },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  inputError: {
-    borderColor: '#FF3B30',
-  },
-  inputIcon: {
-    marginRight: 10,
+  inputGroup: {
+    gap: 8,
   },
   input: {
-    flex: 1,
+    height: 56,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    paddingHorizontal: 16,
     fontSize: 16,
-    color: '#333',
+    color: '#1F2937',
+    backgroundColor: '#FAFAFA',
+  },
+  inputError: {
+    borderColor: '#EF4444',
+    backgroundColor: '#FEF2F2',
+  },
+  passwordContainer: {
+    position: 'relative',
+  },
+  passwordInput: {
+    paddingRight: 50,
   },
   eyeButton: {
-    padding: 5,
+    position: 'absolute',
+    right: 16,
+    top: 18,
   },
   errorText: {
-    color: '#FF3B30',
+    color: '#EF4444',
     fontSize: 14,
-    marginTop: 5,
-    marginLeft: 5,
+    fontWeight: '400',
   },
   registerButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 10,
+    height: 56,
+    backgroundColor: '#1F2937',
+    borderRadius: 12,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
-    shadowColor: '#007AFF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 5,
+    marginTop: 8,
   },
   buttonDisabled: {
-    opacity: 0.6,
+    opacity: 0.5,
   },
   registerButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '500',
   },
-  loginLinkContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 30,
-    paddingBottom: 30,
+  loginLink: {
+    alignItems: 'center',
+    paddingVertical: 16,
+    marginTop: 16,
   },
   loginLinkText: {
     fontSize: 16,
-    color: '#666',
+    color: '#6B7280',
   },
-  loginLink: {
-    fontSize: 16,
-    color: '#007AFF',
-    fontWeight: '600',
+  loginLinkHighlight: {
+    color: '#1F2937',
+    fontWeight: '500',
   },
 });
 

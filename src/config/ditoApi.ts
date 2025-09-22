@@ -299,7 +299,7 @@ const ditoApi = axios.create({
     headers: {
         'Content-Type': 'application/json',
     },
-    timeout: 1000, // 1 segundo timeout
+    timeout: 10000, // 10 segundos timeout
 });
 
 // Configuración para retry automático
